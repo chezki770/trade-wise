@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const Validator = require("validator");
 const keys = require("../../config/keys");
 
 // Load Input Validation
@@ -34,11 +35,6 @@ router.post("/register", async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ email: "Email already exists" });
         }
-    if (!Validator.equals(data.password, data.password2)) {
-        errors.password2 = "Passwords must match";
-        // Add error to both password fields for better UX
-        errors.password = "Passwords must match";
-    }
 
         const newUser = new User({
             name: req.body.name,

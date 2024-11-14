@@ -7,7 +7,7 @@ const path = require('path');
 const db = require("./config/keys").mongoURI;
 const users = require("./routes/auth/users");
 // Passport config
-const passport = require("./config/passport")(passport);
+// const passport = require("./config/passport")(passport);
 
 const app = express();
 

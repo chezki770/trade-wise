@@ -22,15 +22,18 @@ module.exports = function validatePurchaseInput (data) {
         errors.symbol = "Invalid ticker symbol length";
     }
 
-    // Quantity Check
-    if (Validator.isEmpty(data.quantity)) {
-        errors.quantity = "Quantity is required";
-    } else if (data.symbol == 0) {
-        errors.quantity = "Quantity must be above zero";
-    }
-    console.log(errors)
-    return {
-        errors,
-        isValid: isEmpty(errors)
-    };
+// Quantity Check
+if (Validator.isEmpty(data.quantity)) {
+    errors.quantity = "Quantity is required";
+} else if (!Validator.isInt(data.quantity)) {
+    errors.quantity = "Quantity must be a number";
+} else if (Number(data.quantity) <= 0) {  // Convert to number and check if positive
+    errors.quantity = "Quantity must be above zero";
+}
+
+console.log(errors)
+return {
+    errors,
+    isValid: isEmpty(errors)
+};
 };
