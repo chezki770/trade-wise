@@ -1,0 +1,60 @@
+.env
+/node_modules
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnpm-debug.log
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+logs/
+*.log.*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor-specific
+.idea/
+.vscode/
+*.sublime*
+
+# Build outputs
+dist/
+build/
+out/
+.cache/
+tmp/
+temp/
+
+# Coverage directory used by testing tools
+coverage/
+
+# Miscellaneous
+*.swp
+*.bak
+*.orig
+*.save
+
+# Ignore bundler/compiled files
+*.bundle.js
+*.map
