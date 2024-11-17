@@ -11,6 +11,7 @@ const url = "https://www.alphavantage.co/query?";
 const func = "function=TIME_SERIES_DAILY&symbol=";
 let symbol = "";
 const apiKey = "&apikey=5ETEDSPX3VTJD6TR"
+    
 // API ACCESS KEY:  
 export const buyStock = (userData, tradeInfo) => dispatch => {
     axios
