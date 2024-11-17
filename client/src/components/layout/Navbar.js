@@ -13,7 +13,7 @@ class Navbar extends Component {
                             to="/" 
                             style = {{ fontFamily: "monospace"}}
                         >
-                        Virtual Stock Trading
+                        Main
                         </Link>
                     </li>
                     <li>
