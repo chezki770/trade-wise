@@ -1,0 +1,22 @@
+.faq-item h3 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    cursor: pointer;
+  }
+  
+  .faq-item p {
+    margin: 0;
+    padding: 5px 0;
+    color: #555;
+  }
+  
+  .faq-item + .faq-item {
+    margin-top: 15px;
+  }
+  
+  .faq-list {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  

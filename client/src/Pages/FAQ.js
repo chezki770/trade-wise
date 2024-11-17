@@ -1,23 +1,41 @@
-// src/Pages/FAQ.js
-import React from "react";
+import React, { useState } from "react";
+import "./FAQ.css";
 
 const FAQ = () => {
+  const [expandedIndex, setExpandedIndex] = useState(null);
+
+  const faqs = [
+    {
+      question: "What is this project about?",
+      answer: "This project helps users learn about stock trading and portfolio management.",
+    },
+    {
+      question: "How do I get started?",
+      answer: "To get started, create an account and explore the features available in your dashboard.",
+    },
+    {
+      question: "What features are available?",
+      answer: "You can manage your portfolio, track your transactions, and view educational content.",
+    },
+  ];
+
+  const toggleExpand = (index) => {
+    setExpandedIndex(index === expandedIndex ? null : index);
+  };
+
   return (
     <div>
       <h1>Frequently Asked Questions</h1>
-      <div className="faq-item">
-        <h3>What is this project about?</h3>
-        <p>This project helps users learn about stock trading and portfolio management.</p>
+      <div className="faq-list">
+        {faqs.map((faq, index) => (
+          <div key={index} className="faq-item">
+            <h3 onClick={() => toggleExpand(index)} style={{ cursor: "pointer" }}>
+              {faq.question}
+            </h3>
+            {expandedIndex === index && <p>{faq.answer}</p>}
+          </div>
+        ))}
       </div>
-      <div className="faq-item">
-        <h3>How do I get started?</h3>
-        <p>To get started, create an account and explore the features available in your dashboard.</p>
-      </div>
-      <div className="faq-item">
-        <h3>What features are available?</h3>
-        <p>You can manage your portfolio, track your transactions, and view educational content.</p>
-      </div>
-      {/* Add more questions and answers as needed */}
     </div>
   );
 };
