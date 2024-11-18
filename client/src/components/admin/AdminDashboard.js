@@ -8,13 +8,14 @@ class AdminDashboard extends Component {
     super(props);
     this.state = {
       users: [],
+      filteredUsers: [],
+      searchTerm: "",
       loading: true,
       error: null
     };
   }
 
   componentDidMount() {
-    // Only fetch if user is admin
     if (this.props.auth.user.isAdmin) {
       this.fetchUsers();
     }
@@ -33,6 +34,7 @@ class AdminDashboard extends Component {
         console.log("Users data:", res.data);
         this.setState({
           users: res.data,
+          filteredUsers: res.data,
           loading: false
         });
       })
@@ -45,8 +47,21 @@ class AdminDashboard extends Component {
       });
   };
 
+  handleSearch = (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredUsers = this.state.users.filter(user => 
+      user.name.toLowerCase().includes(searchTerm) ||
+      user.email.toLowerCase().includes(searchTerm)
+    );
+
+    this.setState({
+      searchTerm: e.target.value,
+      filteredUsers
+    });
+  };
+
   render() {
-    const { users, loading, error } = this.state;
+    const { filteredUsers, loading, error, searchTerm } = this.state;
 
     if (!this.props.auth.user.isAdmin) {
       return (
@@ -81,24 +96,56 @@ class AdminDashboard extends Component {
         <h4>
           <b>Admin Dashboard</b>
         </h4>
+        
+        {/* Search Bar */}
         <div className="row">
-          {users.map(user => (
-            <div className="col s12 m6" key={user._id}>
-              <div className="card">
-                <div className="card-content">
-                  <span className="card-title">{user.name}</span>
-                  <p className="grey-text">{user.email}</p>
-                  <div style={{ marginTop: "10px" }}>
-                    <p>Balance: ${user.balance.toFixed(2)}</p>
-                    <p>Stocks Owned: {user.ownedStocks.length}</p>
-                    <p>Transactions: {user.transactions.length}</p>
-                    <p>Admin Status: {user.isAdmin ? 'Yes' : 'No'}</p>
-                    <p>Account Created: {new Date(user.date).toLocaleDateString()}</p>
+          <div className="input-field col s12">
+            <input
+              type="text"
+              id="search"
+              value={searchTerm}
+              onChange={this.handleSearch}
+              placeholder="Search by name or email..."
+              className="validate"
+            />
+            <label htmlFor="search" className="active">Search Users</label>
+          </div>
+        </div>
+
+        {/* User count */}
+        <div className="row">
+          <div className="col s12">
+            <p className="grey-text">
+              Showing {filteredUsers.length} of {this.state.users.length} users
+            </p>
+          </div>
+        </div>
+
+        {/* Users Grid */}
+        <div className="row">
+          {filteredUsers.length === 0 ? (
+            <div className="col s12">
+              <p>No users found matching your search.</p>
+            </div>
+          ) : (
+            filteredUsers.map(user => (
+              <div className="col s12 m6" key={user._id}>
+                <div className="card">
+                  <div className="card-content">
+                    <span className="card-title">{user.name}</span>
+                    <p className="grey-text">{user.email}</p>
+                    <div style={{ marginTop: "10px" }}>
+                      <p>Balance: ${user.balance.toFixed(2)}</p>
+                      <p>Stocks Owned: {user.ownedStocks.length}</p>
+                      <p>Transactions: {user.transactions.length}</p>
+                      <p>Admin Status: {user.isAdmin ? 'Yes' : 'No'}</p>
+                      <p>Account Created: {new Date(user.date).toLocaleDateString()}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     );
