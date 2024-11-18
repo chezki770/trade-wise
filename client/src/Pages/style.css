@@ -1,0 +1,41 @@
+/* src/Pages/Learn.css */
+.video-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  .video-gallery iframe {
+    margin: 10px;
+  }
+
+/* About.css */
+.about-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  height: 450px;
+  margin-top: 80px;
+  margin-left: 200px;
+  margin-right: 200px;
+  border: #16a085 solid;
+}
+
+.about-title {
+  color: #2c3e50;
+  text-align: center;
+}
+
+.about-paragraph {
+  font-size: 18px;
+  color: #34495e;
+  text-align: center;
+}
+
+.about-quote {
+  font-size: 18px;
+  font-style: italic;
+  text-align: center;
+  color: #16a085;
+}
