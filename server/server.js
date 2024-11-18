@@ -2,47 +2,77 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const passport = require("passport");
-const path = require('path');
+const cors = require("cors");
+const path = require("path");
 
-const db = require("./config/keys").mongoURI;
+// Load routes
 const users = require("./routes/auth/users");
-// Passport config
-// const passport = require("./config/passport")(passport);
 
 const app = express();
 
+// Enable CORS
+app.use(cors());
+
 // Bodyparser middleware
-app.use(
-    bodyParser.urlencoded({
-        extended: false
-    })
-);
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 
 // DB Config
+const db = require("./config/keys").mongoURI;
 
 // Connect to MongoDB
-mongoose.connect(db, {useNewUrlParser: true}
-    )
-    .then(() => console.log("MongoDB successfully connected!"))
-    .catch(err => console.log(err));
+mongoose
+    .connect(db, { 
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false,
+        useCreateIndex: true
+    })
+    .then(() => console.log("MongoDB successfully connected"))
+    .catch(err => console.log("MongoDB connection error:", err));
 
-    // Routes
-    app.use("/api/users", users);
-    // Passport middleware
-    app.use(passport.initialize());
+// Passport middleware
+app.use(passport.initialize());
 
-// Serve Static Assets if in production
-if(process.env.NODE_ENV === 'production') {
+// Passport config
+require("./config/passport")(passport);
+
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`, {
+        body: req.body,
+        query: req.query,
+        auth: req.headers.authorization ? 'Present' : 'None'
+    });
+    next();
+});
+
+// Routes
+app.use("/api/users", users);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        error: 'Something broke!',
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
+
+// Serve static assets if in production
+if (process.env.NODE_ENV === "production") {
     // Set static folder
-    app.use(express.static('client/build'));
+    app.use(express.static("client/build"));
 
-    app.get('*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+    app.get("*", (req, res) => {
+        res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
     });
 }
 
-const port = process.env.PORT || 8080
-// process.env.pot is Heroku's port if one chooses to deploy there
+const port = process.env.PORT || 8080;
 
-app.listen(port, () => console.log(`Server up and running on port ${port} !`));
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
