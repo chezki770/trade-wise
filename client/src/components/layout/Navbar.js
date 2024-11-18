@@ -83,6 +83,48 @@ class Navbar extends Component {
         <li>
           <Link
             className="col s3 black-text"
+            to="/about"
+            style={{
+              color: "grey",
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              padding: "16px",
+            }}
+          >
+            about
+          </Link>
+        </li> 
+        <li>
+          <Link
+            className="col s3 black-text"
+            to="/faq"
+            style={{
+              color: "grey",
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              padding: "16px",
+            }}
+          >
+            FAQ
+          </Link>
+        </li>
+        <li>
+          <Link
+            className="col s3 black-text"
+            to="/learn"
+            style={{
+              color: "grey",
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              padding: "16px",
+            }}
+          >
+            Learn
+          </Link>
+        </li>
+        <li>
+          <Link
+            className="col s3 black-text"
             to="/history"
             style={{
               color: "grey",
@@ -148,3 +190,4 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, { logoutUser })(Navbar);
+
