@@ -12,7 +12,6 @@ const func = "function=TIME_SERIES_DAILY&symbol=";
 let symbol = "";
 const apiKey = "&apikey=5ETEDSPX3VTJD6TR"
     
-// API ACCESS KEY:  
 export const buyStock = (userData, tradeInfo) => dispatch => {
     axios
         .post("/api/users/stockRequest", tradeInfo)
@@ -22,7 +21,7 @@ export const buyStock = (userData, tradeInfo) => dispatch => {
             return axios.get(url + func + symbol + apiKey);
         })
         .then(res => {
-            if(!res.data) throw("Improper symbol")
+            if(!res.data) throw new Error("Improper symbol");
             console.log("POST API CALL")
             const obj = res.data["Time Series (Daily)"];
             console.log("POST OBJ")
@@ -31,9 +30,10 @@ export const buyStock = (userData, tradeInfo) => dispatch => {
             let info = res.data["Time Series (Daily)"][dateStr];
             if(!info) { 
                 console.log("WHOOPS")
-                throw("STOCK INFO ERROR"); }
+                throw new Error("STOCK INFO ERROR"); 
+            }
 
-                console.log("UD: " + userData)
+            console.log("UD: " + userData)
             const tradeData = {
                 userId: userData.id,
                 symbol: symbol,
@@ -48,8 +48,6 @@ export const buyStock = (userData, tradeInfo) => dispatch => {
                 console.log("response: " + res)
                 dispatch(returnPurchase(res));
             })
-
-            
         })
         .catch(err =>
             dispatch({
@@ -70,7 +68,7 @@ export const sellStock = (userData, tradeInfo) => dispatch => {
             const obj = res.data["Time Series (Daily)"];
             const dateStr = Object.keys(obj)[0];
             let info = res.data["Time Series (Daily)"][dateStr];
-            if(!info) { throw("STOCK INFO ERROR"); }
+            if(!info) { throw new Error("STOCK INFO ERROR"); }
 
             const tradeData = {
                 userId: userData.id,
@@ -80,7 +78,6 @@ export const sellStock = (userData, tradeInfo) => dispatch => {
             }
             axios.post("/server/api/users/sellStock", tradeData)
             .then(res => {
-
                 dispatch(returnSale(res));
             })
         })
@@ -107,7 +104,6 @@ export const returnSale = userData => {
 }
 
 export const updateStocks = userData => dispatch => {
-
     const data = {
         id: userData.id
     }
@@ -116,7 +112,6 @@ export const updateStocks = userData => dispatch => {
     .then(res => {
         dispatch(returnUpdate(res));
     })
-
 }
 
 export const returnUpdate = userData => {
@@ -125,3 +120,4 @@ export const returnUpdate = userData => {
         payload: userData
     }
 }
+
