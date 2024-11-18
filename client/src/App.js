@@ -1,6 +1,6 @@
 // In App.js
 import React, { Component } from 'react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom'
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import jwt_decode from "jwt-decode";
 import setAuthToken from "./utils/setAuthToken";
 import { setCurrentUser, logoutUser } from "./actions/authActions";
@@ -18,6 +18,13 @@ import AdminRoute from "./components/private-route/AdminRoute";  // Make sure th
 import Dashboard from "./components/dashboard/Dashboard";
 import History from "./components/dashboard/History";
 import AdminDashboard from "./components/admin/AdminDashboard"; // Make sure this import exists
+
+
+// Import new pages
+import Learn from "./Pages/Learn";
+import About from "./Pages/About";
+import FAQ from "./Pages/FAQ";
+
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -47,6 +54,9 @@ class App extends Component {
               <PrivateRoute exact path="/dashboard" component={Dashboard} />
               <PrivateRoute exact path="/history" component={History} />
               <AdminRoute exact path="/admin" component={AdminDashboard} />
+              <Route exact path="/learn" component={Learn} />
+              <Route exact path="/about" component={About} />
+              <Route exact path="/faq" component={FAQ} />
             </Switch>
           </div>
         </BrowserRouter>

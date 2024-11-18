@@ -58,3 +58,6 @@ coverage/
 # Ignore bundler/compiled files
 *.bundle.js
 *.map
+
+# Ignore the server folder
+/server
