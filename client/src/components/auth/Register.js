@@ -141,17 +141,6 @@ class Register extends Component {
                                 <label htmlFor="password2">Confirm Password</label>
                                 <span className="red-text">{errors.password2}</span>
                             </div>
-                            <div className="col s12" style={{ marginBottom: "20px" }}>
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        id="isAdmin"
-                                        checked={this.state.isAdmin}
-                                        onChange={this.onChange}
-                                    />
-                                    <span>Register as Admin</span>
-                                </label>
-                            </div>
                             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                                 <button
                                     style={{
