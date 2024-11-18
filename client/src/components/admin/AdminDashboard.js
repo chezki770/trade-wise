@@ -11,7 +11,10 @@ class AdminDashboard extends Component {
       filteredUsers: [],
       searchTerm: "",
       loading: true,
-      error: null
+      error: null,
+      deleteError: null,
+      showDeleteConfirm: false,
+      userToDelete: null
     };
   }
 
@@ -60,8 +63,68 @@ class AdminDashboard extends Component {
     });
   };
 
+  showDeleteConfirmation = (user) => {
+    this.setState({
+      showDeleteConfirm: true,
+      userToDelete: user,
+      deleteError: null
+    });
+  };
+
+  hideDeleteConfirmation = () => {
+    this.setState({
+      showDeleteConfirm: false,
+      userToDelete: null,
+      deleteError: null
+    });
+  };
+
+  handleDeleteUser = () => {
+    const { userToDelete } = this.state;
+    const token = localStorage.getItem("jwtToken");
+
+    console.log("Attempting to delete user:", userToDelete._id);
+    
+    axios
+      .delete(`/api/users/${userToDelete._id}`, {
+        headers: {
+          Authorization: token
+        }
+      })
+      .then(response => {
+        console.log("Delete response:", response);
+        
+        // Remove user from state
+        const updatedUsers = this.state.users.filter(user => user._id !== userToDelete._id);
+        this.setState({
+          users: updatedUsers,
+          filteredUsers: updatedUsers.filter(user =>
+            user.name.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(this.state.searchTerm.toLowerCase())
+          ),
+          showDeleteConfirm: false,
+          userToDelete: null,
+          deleteError: null
+        });
+      })
+      .catch(err => {
+        console.error("Delete error:", err.response || err);
+        this.setState({
+          deleteError: err.response?.data?.error || "Error deleting user"
+        });
+      });
+  };
+
   render() {
-    const { filteredUsers, loading, error, searchTerm } = this.state;
+    const { 
+      filteredUsers, 
+      loading, 
+      error, 
+      searchTerm, 
+      showDeleteConfirm, 
+      userToDelete,
+      deleteError 
+    } = this.state;
 
     if (!this.props.auth.user.isAdmin) {
       return (
@@ -121,6 +184,32 @@ class AdminDashboard extends Component {
           </div>
         </div>
 
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && userToDelete && (
+          <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 }}>
+            <div className="modal-content" style={{ backgroundColor: 'white', width: '80%', maxWidth: '500px', margin: '100px auto', padding: '20px', borderRadius: '4px' }}>
+              <h5>Confirm Delete</h5>
+              <p>Are you sure you want to delete user {userToDelete.name} ({userToDelete.email})?</p>
+              {deleteError && <p className="red-text">{deleteError}</p>}
+              <div className="modal-footer" style={{ marginTop: '20px' }}>
+                <button
+                  onClick={this.hideDeleteConfirmation}
+                  className="btn-flat waves-effect"
+                  style={{ marginRight: '10px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={this.handleDeleteUser}
+                  className="btn waves-effect waves-light red"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Users Grid */}
         <div className="row">
           {filteredUsers.length === 0 ? (
@@ -141,6 +230,17 @@ class AdminDashboard extends Component {
                       <p>Admin Status: {user.isAdmin ? 'Yes' : 'No'}</p>
                       <p>Account Created: {new Date(user.date).toLocaleDateString()}</p>
                     </div>
+                  </div>
+                  <div className="card-action">
+                    {/* Don't show delete button for the current admin */}
+                    {user._id !== this.props.auth.user.id && (
+                      <button
+                        onClick={() => this.showDeleteConfirmation(user)}
+                        className="btn-small waves-effect waves-light red"
+                      >
+                        Delete User
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
