@@ -12,25 +12,41 @@ import {
 // Register User
 export const registerUser = (userData, history) => dispatch => {
     dispatch(setUserLoading());
+    console.log("Registering user with data:", userData); // Debug log
+
     axios
         .post("/api/users/register", userData)
         .then(res => {
-            history.push("/login"); // redirect to login on successful register
+            console.log("Registration successful:", res.data); // Debug log
+            
+            // Create login data from registration
+            const loginData = {
+                email: userData.email,
+                password: userData.password
+            };
+            
+            // Automatically log in after successful registration
+            dispatch(loginUser(loginData, history));
         })
-        .catch(err =>
+        .catch(err => {
+            console.error("Registration error:", err); // Debug log
             dispatch({
                 type: GET_ERRORS,
                 payload: err.response ? err.response.data : { error: "Registration failed" }
-            })
-        );
+            });
+        });
 };
 
 // Login - get user token
-export const loginUser = userData => dispatch => {
+export const loginUser = (userData, history) => dispatch => {
     dispatch(setUserLoading());
+    console.log("Attempting login with:", userData); // Debug log
+
     axios
         .post("/api/users/login", userData)
         .then(res => {
+            console.log("Login response:", res.data); // Debug log
+            
             // Save to localStorage
             const { token } = res.data;
             localStorage.setItem("jwtToken", token);
@@ -40,9 +56,10 @@ export const loginUser = userData => dispatch => {
 
             // Decode token to get user data
             const decoded = jwt_decode(token);
+            console.log("Decoded token:", decoded); // Debug log
 
             // Set current user
-            dispatch(setCurrentUser({
+            const userPayload = {
                 id: decoded.id,
                 name: decoded.name,
                 email: decoded.email,
@@ -50,21 +67,34 @@ export const loginUser = userData => dispatch => {
                 balance: decoded.balance,
                 transactions: decoded.transactions,
                 ownedStocks: decoded.ownedStocks
-            }));
+            };
+
+            console.log("Setting current user with:", userPayload); // Debug log
+            dispatch(setCurrentUser(userPayload));
+
+            // Redirect based on user role
+            if (history) {
+                if (decoded.isAdmin) {
+                    history.push("/admin");
+                } else {
+                    history.push("/dashboard");
+                }
+            }
         })
-        .catch(err =>
+        .catch(err => {
+            console.error("Login error:", err); // Debug log
             dispatch({
                 type: GET_ERRORS,
                 payload: err.response ? err.response.data : { error: "Login failed" }
-            })
-        );
+            });
+        });
 };
 
 // Get all users (admin only)
 export const getAllUsers = () => dispatch => {
     dispatch(setUserLoading());
     axios
-        .get("/server/api/users/all", {
+        .get("/api/users/all", {
             headers: {
                 Authorization: localStorage.getItem("jwtToken")
             }
@@ -108,6 +138,7 @@ export const updateUser = (userId, userData) => dispatch => {
 
 // Set logged in user
 export const setCurrentUser = decoded => {
+    console.log("Setting current user in reducer:", decoded); // Debug log
     return {
         type: SET_CURRENT_USER,
         payload: decoded
@@ -125,8 +156,10 @@ export const setUserLoading = () => {
 export const logoutUser = () => dispatch => {
     // Remove token from localStorage
     localStorage.removeItem("jwtToken");
+    
     // Remove auth header for future requests
     setAuthToken(false);
+    
     // Set current user to empty object {} which will set isAuthenticated to false
     dispatch(setCurrentUser({}));
 };
