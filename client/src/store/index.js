@@ -15,5 +15,5 @@ const store = createStore(
         //window.__REDUX_DEVTOOLS_EXTENSION__()
     )
 );
-
+//TodO: convert to reduxex
 export default store;

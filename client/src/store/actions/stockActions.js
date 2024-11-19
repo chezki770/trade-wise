@@ -1,8 +1,9 @@
 import axios from "axios";
-
+import { someAction } from "../../store/actions/authActions";
+import { anotherAction } from "../../store/actions/stockActions";   
 import {
     GET_ERRORS,
-    BUY_STOCK,
+    BUY_STOCK,  
     SELL_STOCK,
     UPDATE_STOCKS
 } from "./types";

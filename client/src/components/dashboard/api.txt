@@ -1,0 +1,5 @@
+API key:
+d63b8780a58f41779b4e03169dfbb45a
+
+Alpha Vantage API:
+8REBGB42F4VGNTPS
