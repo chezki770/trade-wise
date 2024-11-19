@@ -13,8 +13,11 @@ class AdminDashboard extends Component {
       loading: true,
       error: null,
       deleteError: null,
+      adminPromoteError: null,
       showDeleteConfirm: false,
-      userToDelete: null
+      showPromoteConfirm: false,
+      userToDelete: null,
+      userToPromote: null
     };
   }
 
@@ -79,11 +82,25 @@ class AdminDashboard extends Component {
     });
   };
 
+  showPromoteConfirmation = (user) => {
+    this.setState({
+      showPromoteConfirm: true,
+      userToPromote: user,
+      adminPromoteError: null
+    });
+  };
+
+  hidePromoteConfirmation = () => {
+    this.setState({
+      showPromoteConfirm: false,
+      userToPromote: null,
+      adminPromoteError: null
+    });
+  };
+
   handleDeleteUser = () => {
     const { userToDelete } = this.state;
     const token = localStorage.getItem("jwtToken");
-
-    console.log("Attempting to delete user:", userToDelete._id);
     
     axios
       .delete(`/api/users/${userToDelete._id}`, {
@@ -92,9 +109,6 @@ class AdminDashboard extends Component {
         }
       })
       .then(response => {
-        console.log("Delete response:", response);
-        
-        // Remove user from state
         const updatedUsers = this.state.users.filter(user => user._id !== userToDelete._id);
         this.setState({
           users: updatedUsers,
@@ -108,12 +122,54 @@ class AdminDashboard extends Component {
         });
       })
       .catch(err => {
-        console.error("Delete error:", err.response || err);
         this.setState({
           deleteError: err.response?.data?.error || "Error deleting user"
         });
       });
   };
+
+  handlePromoteToAdmin = () => {
+    const { userToPromote } = this.state;
+    const token = localStorage.getItem("jwtToken");
+
+    // Use the proxy by just specifying the path
+    axios
+      .put(`/api/users/${userToPromote._id}`, 
+        { isAdmin: true },
+        {
+          headers: {
+            Authorization: token,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      .then(response => {
+        console.log('Promotion response:', response);
+        // Update user in state
+        const updatedUsers = this.state.users.map(user => 
+          user._id === userToPromote._id ? { ...user, isAdmin: true } : user
+        );
+        
+        this.setState({
+          users: updatedUsers,
+          filteredUsers: updatedUsers.filter(user =>
+            user.name.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(this.state.searchTerm.toLowerCase())
+          ),
+          showPromoteConfirm: false,
+          userToPromote: null,
+          adminPromoteError: null
+        });
+      })
+      .catch(err => {
+        console.error('Error promoting user:', err);
+        console.error('Error response:', err.response);
+        this.setState({
+          adminPromoteError: err.response?.data?.error || "Error promoting user to admin",
+          showPromoteConfirm: true // Keep modal open on error
+        });
+      });
+};
 
   render() {
     const { 
@@ -122,8 +178,11 @@ class AdminDashboard extends Component {
       error, 
       searchTerm, 
       showDeleteConfirm, 
+      showPromoteConfirm,
       userToDelete,
-      deleteError 
+      userToPromote,
+      deleteError,
+      adminPromoteError 
     } = this.state;
 
     if (!this.props.auth.user.isAdmin) {
@@ -210,6 +269,32 @@ class AdminDashboard extends Component {
           </div>
         )}
 
+        {/* Promote to Admin Confirmation Modal */}
+        {showPromoteConfirm && userToPromote && (
+          <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 }}>
+            <div className="modal-content" style={{ backgroundColor: 'white', width: '80%', maxWidth: '500px', margin: '100px auto', padding: '20px', borderRadius: '4px' }}>
+              <h5>Confirm Promote to Admin</h5>
+              <p>Are you sure you want to promote {userToPromote.name} ({userToPromote.email}) to admin status?</p>
+              {adminPromoteError && <p className="red-text">{adminPromoteError}</p>}
+              <div className="modal-footer" style={{ marginTop: '20px' }}>
+                <button
+                  onClick={this.hidePromoteConfirmation}
+                  className="btn-flat waves-effect"
+                  style={{ marginRight: '10px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={this.handlePromoteToAdmin}
+                  className="btn waves-effect waves-light blue"
+                >
+                  Promote to Admin
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Users Grid */}
         <div className="row">
           {filteredUsers.length === 0 ? (
@@ -232,14 +317,26 @@ class AdminDashboard extends Component {
                     </div>
                   </div>
                   <div className="card-action">
-                    {/* Don't show delete button for the current admin */}
+                    {/* Don't show actions for the current admin */}
                     {user._id !== this.props.auth.user.id && (
-                      <button
-                        onClick={() => this.showDeleteConfirmation(user)}
-                        className="btn-small waves-effect waves-light red"
-                      >
-                        Delete User
-                      </button>
+                      <>
+                        <button
+                          onClick={() => this.showDeleteConfirmation(user)}
+                          className="btn-small waves-effect waves-light red"
+                          style={{ marginRight: '10px' }}
+                        >
+                          Delete User
+                        </button>
+                        {!user.isAdmin && (
+                          <button
+                            onClick={() => this.showPromoteConfirmation(user)}
+                            className="btn-small waves-effect waves-light blue"
+                          >
+                            Make Admin
+                          </button>
+                          
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

@@ -1,24 +1,23 @@
 /* Navbar.css */
 .navbar {
-    background: white;
-  }
-  .navbar ul {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    justify-content: space-around;
-  }
-  .navbar li {
-    margin: 0 10px;
-  }
-  .navbar a {
-    color: grey;
-    font-family: monospace;
-    font-weight: bold;
-    padding: 16px;
-    text-decoration: none;
-  }
-  .navbar a:hover {
-    color: black;
-  }
-  
+  background: white;
+}
+.navbar ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: space-around;
+}
+.navbar li {
+  margin: 0 10px;
+}
+.navbar a {
+  color: grey;
+  font-family: monospace;
+  font-weight: bold;
+  padding: 16px;
+  text-decoration: none;
+}
+.navbar a:hover {
+  color: black;
+}
