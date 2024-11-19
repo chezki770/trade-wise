@@ -132,16 +132,19 @@ class AdminDashboard extends Component {
     const { userToPromote } = this.state;
     const token = localStorage.getItem("jwtToken");
 
+    // Use the proxy by just specifying the path
     axios
       .put(`/api/users/${userToPromote._id}`, 
         { isAdmin: true },
         {
           headers: {
-            Authorization: token
+            Authorization: token,
+            'Content-Type': 'application/json'
           }
         }
       )
       .then(response => {
+        console.log('Promotion response:', response);
         // Update user in state
         const updatedUsers = this.state.users.map(user => 
           user._id === userToPromote._id ? { ...user, isAdmin: true } : user
@@ -159,11 +162,14 @@ class AdminDashboard extends Component {
         });
       })
       .catch(err => {
+        console.error('Error promoting user:', err);
+        console.error('Error response:', err.response);
         this.setState({
-          adminPromoteError: err.response?.data?.error || "Error promoting user to admin"
+          adminPromoteError: err.response?.data?.error || "Error promoting user to admin",
+          showPromoteConfirm: true // Keep modal open on error
         });
       });
-  };
+};
 
   render() {
     const { 

@@ -174,20 +174,19 @@ router.get(
     }
 );
 
-// @route DELETE api/users/:id
-// @desc Delete user (admin only)
+// @route PUT api/users/:id
+// @desc Update user (admin only)
 // @access Private
-router.delete("/:id", passport.authenticate("jwt", { session: false }), async (req, res) => {
+router.put("/:id", passport.authenticate("jwt", { session: false }), async (req, res) => {
     try {
-        console.log("Delete route accessed for ID:", req.params.id);
-        
+        console.log("Update route accessed", {
+            userId: req.params.id,
+            updateData: req.body,
+            requestingUser: req.user._id
+        });
+
         if (!req.user.isAdmin) {
             return res.status(403).json({ error: "Unauthorized: Admin access required" });
-        }
-
-        // Prevent admin from deleting themselves
-        if (req.user.id === req.params.id) {
-            return res.status(400).json({ error: "Cannot delete your own admin account" });
         }
 
         // Validate MongoDB ID
@@ -200,13 +199,31 @@ router.delete("/:id", passport.authenticate("jwt", { session: false }), async (r
             return res.status(404).json({ error: "User not found" });
         }
 
-        await User.findByIdAndDelete(req.params.id);
-        console.log("User deleted successfully:", req.params.id);
-        
-        res.json({ success: true, message: "User deleted successfully" });
+        // Update user fields
+        if (typeof req.body.isAdmin === 'boolean') {
+            user.isAdmin = req.body.isAdmin;
+        }
+
+        // Save the updated user
+        const updatedUser = await user.save();
+        console.log("User updated successfully:", updatedUser);
+
+        // Return the updated user (excluding password)
+        res.json({
+            success: true,
+            user: {
+                id: updatedUser.id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                isAdmin: updatedUser.isAdmin,
+                balance: updatedUser.balance,
+                transactions: updatedUser.transactions,
+                ownedStocks: updatedUser.ownedStocks
+            }
+        });
     } catch (err) {
-        console.error("Delete route error:", err);
-        res.status(500).json({ error: "Error deleting user" });
+        console.error("Update route error:", err);
+        res.status(500).json({ error: "Error updating user" });
     }
 });
 
