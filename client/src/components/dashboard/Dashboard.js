@@ -42,22 +42,57 @@ class Dashboard extends Component {
         this.props.logoutUser();
     };
 
-    onUpdateClick = e => {
+    // onUpdateClick = e => {
+    //   e.preventDefault();
+
+    //   let user = "";
+    //   if(!this.props.stock.user.data) { user = this.props.auth.user; }
+    //   else { user = this.props.stock.user.data; }
+
+    //   this.props.updateStocks(user);
+    //   let result = this.props.stock.user.data;
+    //   if(result) {
+    //     this.props.auth.user = result;
+    //     this.setState({
+    //       portfolio: result.ownedStocks
+    //     });
+    //   }
+    // }
+
+    onUpdateClick = (e) => {
       e.preventDefault();
-
+    
+      console.log("onUpdateClick triggered"); // Log the start of the function
+    
       let user = "";
-      if(!this.props.stock.user.data) { user = this.props.auth.user; }
-      else { user = this.props.stock.user.data; }
-
-      this.props.updateStocks(user);
-      let result = this.props.stock.user.data;
-      if(result) {
-        this.props.auth.user = result;
-        this.setState({
-          portfolio: result.ownedStocks
-        });
+      if (!this.props.stock.user.data) {
+        user = this.props.auth.user;
+        console.log("No stock user data found. Using auth user:", user); // Log fallback case
+      } else {
+        user = this.props.stock.user.data;
+        console.log("Stock user data found:", user); // Log when stock user data exists
       }
-    }
+    
+      this.props.updateStocks(user);
+      console.log("updateStocks called with user:", user); // Log the call to updateStocks
+    
+      let result = this.props.stock.user.data;
+      console.log("Result from stock user data:", result); // Log the result from stock.user.data
+    
+      if (result) {
+        console.log("Result exists. Updating auth user and state."); // Log if result exists
+        this.props.auth.user = result;
+    
+        this.setState({
+          portfolio: result.ownedStocks,
+        }, () => {
+          console.log("State updated. New portfolio:", this.state.portfolio); // Log after state update
+        });
+      } else {
+        console.log("No result found. State unchanged."); // Log if no result
+      }
+    };
+    
 
     processRequest = async (user, tradeRequest, stockRequest) => {
       return new Promise((resolve, reject) => {
