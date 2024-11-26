@@ -1,285 +1,199 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import classnames from "classnames";
-import { connect } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { logoutUser, } from "../../redux/actions/authActions";
+import {  buyStock, sellStock, updateStocks } from "../../redux/actions/stockActions";
 
-import { logoutUser } from  "../../actions/authActions";
-import { buyStock, sellStock, updateStocks } from "../../actions/stockActions";
-
-function HeldStock({ symbol, shares, currentValue, openValue }) {
-  let performanceColor = "";
-  if(currentValue > openValue) performanceColor = "green";
-  else if (currentValue < openValue) performanceColor = "red";
-  else performanceColor = "grey";
+const HeldStock = ({ symbol, shares, currentValue, openValue }) => {
+  const performanceColor =
+    currentValue > openValue ? "green" : currentValue < openValue ? "red" : "grey";
 
   return (
-    <li style={{ color: performanceColor }}>{symbol} - {shares} shares ({currentValue*shares})</li>
+    <li style={{ color: performanceColor }}>
+      {symbol} - {shares} shares (${currentValue * shares})
+    </li>
   );
-}
-
-class Dashboard extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            symbol: "",
-            quantity: "",
-            balance: this.props.auth.user.balance,
-            portfolio: this.props.auth.user.ownedStocks,
-            errors: {}
-        };
-    }
-
-    componentDidMount() {
-      const { user } = this.props.auth;
-      this.setState({
-        balance: user.balance,
-        portfolio: user.ownedStocks
-      });
-    }
-
-    onLogoutClick = e => {
-        e.preventDefault();
-        this.props.logoutUser();
-    };
-
-    // onUpdateClick = e => {
-    //   e.preventDefault();
-
-    //   let user = "";
-    //   if(!this.props.stock.user.data) { user = this.props.auth.user; }
-    //   else { user = this.props.stock.user.data; }
-
-    //   this.props.updateStocks(user);
-    //   let result = this.props.stock.user.data;
-    //   if(result) {
-    //     this.props.auth.user = result;
-    //     this.setState({
-    //       portfolio: result.ownedStocks
-    //     });
-    //   }
-    // }
-
-    onUpdateClick = (e) => {
-      e.preventDefault();
-    
-      console.log("onUpdateClick triggered"); // Log the start of the function
-    
-      let user = "";
-      if (!this.props.stock.user.data) {
-        user = this.props.auth.user;
-        console.log("No stock user data found. Using auth user:", user); // Log fallback case
-      } else {
-        user = this.props.stock.user.data;
-        console.log("Stock user data found:", user); // Log when stock user data exists
-      }
-    
-      this.props.updateStocks(user);
-      console.log("updateStocks called with user:", user); // Log the call to updateStocks
-    
-      let result = this.props.stock.user.data;
-      console.log("Result from stock user data:", result); // Log the result from stock.user.data
-    
-      if (result) {
-        console.log("Result exists. Updating auth user and state."); // Log if result exists
-        this.props.auth.user = result;
-    
-        this.setState({
-          portfolio: result.ownedStocks,
-        }, () => {
-          console.log("State updated. New portfolio:", this.state.portfolio); // Log after state update
-        });
-      } else {
-        console.log("No result found. State unchanged."); // Log if no result
-      }
-    };
-    
-
-    processRequest = async (user, tradeRequest, stockRequest) => {
-      return new Promise((resolve, reject) => {
-        let result = stockRequest(user, tradeRequest);
-        setTimeout(function() {
-          resolve(result);
-        }, 5000);
-      }).then(result => {
-        return result;
-      });
-    };
-
-    onBuyClick = async e => {
-      e.preventDefault();
-
-      let tradeRequest = {
-          symbol: this.state.symbol,
-          quantity: this.state.quantity 
-      };
-      let user = "";
-      if(!this.props.stock.user.data) { user = this.props.auth.user; }
-      else { user = this.props.stock.user.data; }
-
-      await this.processRequest(user, tradeRequest, this.props.buyStock);
-      let result = this.props.stock.user.data;
-      if(result) {
-        this.props.auth.user = result;
-        this.setState({
-          balance: result.balance,
-          portfolio: result.ownedStocks,
-        });
-      }
-    }
-
-    onSellClick = async e => {
-      e.preventDefault();
-
-      let tradeRequest = {
-        symbol: this.state.symbol,
-        quantity: this.state.quantity 
-      };
-
-      let user = "";
-      if(!this.props.stock.user.data) { user = this.props.auth.user; }
-      else { user = this.props.stock.user.data; }
-
-      await this.processRequest(user, tradeRequest, this.props.sellStock);
-      let result = this.props.stock.user.data;
-      if(result) {
-        this.props.auth.user = result;
-        this.setState({
-          balance: result.balance,
-          portfolio: result.ownedStocks,
-        });
-      }
-    }
-
-    onChange = e => {
-      this.setState({ [e.target.id]: e.target.value });
-    };
-
-    render() {
-        const { errors } = this.state;
-        let portfolio = undefined;
-        let portfolioSum = 0;
-        if(this.state.portfolio != null) {
-          portfolio = this.state.portfolio.map((stock, ii) => {
-            portfolioSum += stock.quantity*stock.unit_price;
-            return(
-              <HeldStock 
-                symbol={stock.symbol}
-                shares={stock.quantity}
-                currentValue={stock.unit_price}
-                openValue={stock.open_price}
-                key={ii}
-              />
-            );
-          });
-        } else { portfolio = "No stocks owned yet."; }
-
-        return (
-          <div style={{ height: "75vh" }} className="container valign-wrapper">
-            <div className="row">
-              <div className="col s6 center-align">
-                <h4>
-                  <b>Portfolio(${portfolioSum})</b>
-                </h4>
-                <ul>
-                  {portfolio}
-                </ul>
-              </div>
-              <div className="col s6 center-align">
-                <h4>
-                  Cash: (${this.state.balance})
-                </h4>
-                <input
-                  onChange={this.onChange}
-                  value={this.state.symbol}
-                  error={errors.symbol}
-                  id="symbol"
-                  type="text"
-                  placeholder="Ticker Symbol"
-                  className={classnames("", {
-                    invalid: errors.symbol
-                  })} 
-                />
-                <input
-                  onChange={this.onChange}
-                  value={this.state.quantity}
-                  error={errors.quantity}
-                  id="quantity"
-                  type="text"
-                  placeholder="Quantity"
-                  className={classnames("", {
-                    invalid: errors.quantity
-                  })}
-                />                        
-                <button
-                  style={{
-                    width: "100px",
-                    borderRadius: "3px",
-                    letterSpacing: "1.5px",
-                    marginTop: "1rem"
-                  }}
-                  onClick={this.onBuyClick}
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                >
-                  Buy
-                </button>
-                <button
-                  style={{
-                    width: "100px",
-                    borderRadius: "3px",
-                    letterSpacing: "1.5px",
-                    marginTop: "1rem"
-                  }}
-                  onClick={this.onSellClick}
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                >
-                  Sell
-                </button>
-                <button
-                  style={{
-                    width: "150px",
-                    borderRadius: "3px",
-                    letterSpacing: "1.5px",
-                    marginTop: "1rem"
-                  }}
-                  onClick={this.onUpdateClick}
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                >
-                  Update Prices
-                </button>
-                <button
-                  style={{
-                    width: "150px",
-                    borderRadius: "3px",
-                    letterSpacing: "1.5px",
-                    marginTop: "1rem"
-                  }}
-                  onClick={this.onLogoutClick}
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-    }
-}
-
-Dashboard.propTypes = {
-    logoutUser: PropTypes.func.isRequired,
-    buyStock: PropTypes.func.isRequired,
-    sellStock: PropTypes.func.isRequired,
-    updateStocks: PropTypes.func.isRequired,
-    auth: PropTypes.object.isRequired,
-    user: PropTypes.object.isRequired
 };
 
-const mapStateToProps = state => ({
-    auth: state.auth,
-    stock: state.stock
-});
+const Dashboard = () => {
+  // Local state
+  const [symbol, setSymbol] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [balance, setBalance] = useState(auth?.user?.balance || 0);
+  const [portfolio, setPortfolio] = useState(auth?.user?.ownedStocks || []);
+  const [errors, setErrors] = useState({});
 
-export default connect(
-    mapStateToProps,
-    { logoutUser, buyStock, sellStock, updateStocks }
-)(Dashboard);
+  // Accessing Redux store state
+  const auth = useSelector((state) => state.auth);
+  const stock = useSelector((state) => state.stock);
+  
+  const dispatch = useDispatch();
+
+
+  useEffect(() => {
+    // Update local state when auth state changes
+    if (auth?.user) {
+      setBalance(auth.user.balance || 0);
+      setPortfolio(auth.user.ownedStocks || []);
+    }
+  }, [auth]);
+
+  const onLogoutClick = (e) => {
+    e.preventDefault();
+    dispatch(logoutUser());
+  };
+
+  const onUpdateClick = async (e) => {
+    e.preventDefault();
+
+    const user = stock?.user?.data || auth?.user || {};
+    await dispatch(updateStocks(user));
+
+    const updatedUser = stock?.user?.data;
+    if (updatedUser) {
+      setPortfolio(updatedUser.ownedStocks || []);
+    }
+  };
+
+  const processRequest = async (user, tradeRequest, action) => {
+    return new Promise((resolve) => {
+      const result = dispatch(action(user, tradeRequest));
+      setTimeout(() => resolve(result), 5000);
+    });
+  };
+
+  const handleBuyClick = async (e) => {
+    e.preventDefault();
+
+    const tradeRequest = { symbol, quantity };
+    const user = stock?.user?.data || auth?.user || {};
+
+    await processRequest(user, tradeRequest, buyStock);
+
+    const updatedUser = stock?.user?.data;
+    if (updatedUser) {
+      setBalance(updatedUser.balance || 0);
+      setPortfolio(updatedUser.ownedStocks || []);
+    }
+  };
+
+  const handleSellClick = async (e) => {
+    e.preventDefault();
+
+    const tradeRequest = { symbol, quantity };
+    const user = stock?.user?.data || auth?.user || {};
+
+    await processRequest(user, tradeRequest, sellStock);
+
+    const updatedUser = stock?.user?.data;
+    if (updatedUser) {
+      setBalance(updatedUser.balance || 0);
+      setPortfolio(updatedUser.ownedStocks || []);
+    }
+  };
+
+  const portfolioList = portfolio.length
+    ? portfolio.map((stock, index) => (
+        <HeldStock
+          symbol={stock.symbol}
+          shares={stock.quantity}
+          currentValue={stock.unit_price}
+          openValue={stock.open_price}
+          key={index}
+        />
+      ))
+    : "No stocks owned yet.";
+
+  const portfolioSum = portfolio.reduce(
+    (sum, stock) => sum + stock.quantity * stock.unit_price,
+    0
+  );
+
+  return (
+    <div style={{ height: "75vh" }} className="container valign-wrapper">
+      <div className="row">
+        <div className="col s6 center-align">
+          <h4>
+            <b>Portfolio (${portfolioSum.toFixed(2)})</b>
+          </h4>
+          <ul>{portfolioList}</ul>
+        </div>
+        <div className="col s6 center-align">
+          <h4>Cash: (${balance.toFixed(2)})</h4>
+          <input
+            onChange={(e) => setSymbol(e.target.value)}
+            value={symbol}
+            id="symbol"
+            type="text"
+            placeholder="Ticker Symbol"
+            className={classnames("", { invalid: errors.symbol })}
+          />
+          <input
+            onChange={(e) => setQuantity(e.target.value)}
+            value={quantity}
+            id="quantity"
+            type="text"
+            placeholder="Quantity"
+            className={classnames("", { invalid: errors.quantity })}
+          />
+          <button
+            style={{
+              width: "100px",
+              borderRadius: "3px",
+              letterSpacing: "1.5px",
+              marginTop: "1rem",
+            }}
+            onClick={handleBuyClick}
+            className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+          >
+            Buy
+          </button>
+          <button
+            style={{
+              width: "100px",
+              borderRadius: "3px",
+              letterSpacing: "1.5px",
+              marginTop: "1rem",
+            }}
+            onClick={handleSellClick}
+            className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+          >
+            Sell
+          </button>
+          <button
+            style={{
+              width: "150px",
+              borderRadius: "3px",
+              letterSpacing: "1.5px",
+              marginTop: "1rem",
+            }}
+            onClick={onUpdateClick}
+            className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+          >
+            Update Prices
+          </button>
+          <button
+            style={{
+              width: "150px",
+              borderRadius: "3px",
+              letterSpacing: "1.5px",
+              marginTop: "1rem",
+            }}
+            onClick={onLogoutClick}
+            className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Dashboard.propTypes = {
+  auth: PropTypes.object,
+  stock: PropTypes.object,
+};
+
+export default Dashboard;
