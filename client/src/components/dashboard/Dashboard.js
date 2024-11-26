@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import classnames from "classnames";
 import { useSelector, useDispatch } from "react-redux";
-import { logoutUser, } from "../../redux/actions/authActions";
-import {  buyStock, sellStock, updateStocks } from "../../redux/actions/stockActions";
+// import { logoutUser, } from "../../redux/actions/authActions";
+// import { buyStock, sellStock, updateStocks } from "../../redux/actions/stockActions";
 
 const HeldStock = ({ symbol, shares, currentValue, openValue }) => {
   const performanceColor =
@@ -20,89 +20,89 @@ const Dashboard = () => {
   // Local state
   const [symbol, setSymbol] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [balance, setBalance] = useState(auth?.user?.balance || 0);
-  const [portfolio, setPortfolio] = useState(auth?.user?.ownedStocks || []);
+  const [balance, setBalance] = useState( 0);
+  const [portfolio, setPortfolio] = useState([]);
   const [errors, setErrors] = useState({});
 
-  // Accessing Redux store state
-  const auth = useSelector((state) => state.auth);
-  const stock = useSelector((state) => state.stock);
-  
-  const dispatch = useDispatch();
+  // // Accessing Redux store state
+  // const auth = useSelector((state) => state.auth);
+  // const stock = useSelector((state) => state.stock);
+
+  // const dispatch = useDispatch();
 
 
-  useEffect(() => {
-    // Update local state when auth state changes
-    if (auth?.user) {
-      setBalance(auth.user.balance || 0);
-      setPortfolio(auth.user.ownedStocks || []);
-    }
-  }, [auth]);
+  // useEffect(() => {
+  //   // Update local state when auth state changes
+  //   if (auth?.user) {
+  //     setBalance(auth.user.balance || 0);
+  //     setPortfolio(auth.user.ownedStocks || []);
+  //   }
+  // }, [auth]);
 
   const onLogoutClick = (e) => {
     e.preventDefault();
-    dispatch(logoutUser());
+    // dispatch(logoutUser());
   };
 
   const onUpdateClick = async (e) => {
     e.preventDefault();
 
-    const user = stock?.user?.data || auth?.user || {};
-    await dispatch(updateStocks(user));
+    // const user = stock?.user?.data || auth?.user || {};
+    // await dispatch(updateStocks(user));
 
-    const updatedUser = stock?.user?.data;
-    if (updatedUser) {
-      setPortfolio(updatedUser.ownedStocks || []);
-    }
+    // const updatedUser = stock?.user?.data;
+    // if (updatedUser) {
+    //   setPortfolio(updatedUser.ownedStocks || []);
+    // }
   };
 
-  const processRequest = async (user, tradeRequest, action) => {
-    return new Promise((resolve) => {
-      const result = dispatch(action(user, tradeRequest));
-      setTimeout(() => resolve(result), 5000);
-    });
-  };
+  // const processRequest = async (user, tradeRequest, action) => {
+  //   return new Promise((resolve) => {
+  //     const result = dispatch(action(user, tradeRequest));
+  //     setTimeout(() => resolve(result), 5000);
+  //   });
+  // };
 
   const handleBuyClick = async (e) => {
     e.preventDefault();
 
-    const tradeRequest = { symbol, quantity };
-    const user = stock?.user?.data || auth?.user || {};
+    // const tradeRequest = { symbol, quantity };
+    // const user = stock?.user?.data || auth?.user || {};
 
-    await processRequest(user, tradeRequest, buyStock);
+    // await processRequest(user, tradeRequest, buyStock);
 
-    const updatedUser = stock?.user?.data;
-    if (updatedUser) {
-      setBalance(updatedUser.balance || 0);
-      setPortfolio(updatedUser.ownedStocks || []);
-    }
+    // const updatedUser = stock?.user?.data;
+    // if (updatedUser) {
+    //   setBalance(updatedUser.balance || 0);
+    //   setPortfolio(updatedUser.ownedStocks || []);
+    // }
   };
 
   const handleSellClick = async (e) => {
     e.preventDefault();
 
-    const tradeRequest = { symbol, quantity };
-    const user = stock?.user?.data || auth?.user || {};
+    // const tradeRequest = { symbol, quantity };
+    // const user = stock?.user?.data || auth?.user || {};
 
-    await processRequest(user, tradeRequest, sellStock);
+    // await processRequest(user, tradeRequest, sellStock);
 
-    const updatedUser = stock?.user?.data;
-    if (updatedUser) {
-      setBalance(updatedUser.balance || 0);
-      setPortfolio(updatedUser.ownedStocks || []);
-    }
+    // const updatedUser = stock?.user?.data;
+    // if (updatedUser) {
+    //   setBalance(updatedUser.balance || 0);
+    //   setPortfolio(updatedUser.ownedStocks || []);
+    // }
   };
 
   const portfolioList = portfolio.length
     ? portfolio.map((stock, index) => (
-        <HeldStock
-          symbol={stock.symbol}
-          shares={stock.quantity}
-          currentValue={stock.unit_price}
-          openValue={stock.open_price}
-          key={index}
-        />
-      ))
+      <HeldStock
+        symbol={stock.symbol}
+        shares={stock.quantity}
+        currentValue={stock.unit_price}
+        openValue={stock.open_price}
+        key={index}
+      />
+    ))
     : "No stocks owned yet.";
 
   const portfolioSum = portfolio.reduce(
