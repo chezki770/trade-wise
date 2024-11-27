@@ -1,4 +1,4 @@
-import {
+import { 
     SET_CURRENT_USER,
     USER_LOADING
 } from "../actions/types";
@@ -11,11 +11,11 @@ const initialState = {
     loading: false
 };
 
-export default function(state = initialState, action) {
+const authReducer = (state = initialState, action) => {
     switch(action.type) {
         case SET_CURRENT_USER:
-        console.log("SET CURRENT USER")    
-        return {
+            console.log("SET CURRENT USER");    
+            return {
                 ...state,
                 isAuthenticated: !isEmpty(action.payload),
                 user: action.payload
@@ -29,3 +29,5 @@ export default function(state = initialState, action) {
             return state;
     }
 }
+
+export default authReducer;
