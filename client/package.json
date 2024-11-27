@@ -5,12 +5,10 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.0",
     "assert": "^2.1.0",
-    "axios": "^1.7.8",
-    "chokidar": "^4.0.1",
+    "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.2.6",
     "clsx": "^2.1.1",
-    "dotenv": "^16.4.5",
     "is-empty": "^1.2.0",
     "jwt-decode": "^2.2.0",
     "lucide-react": "^0.460.0",
