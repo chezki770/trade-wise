@@ -32,9 +32,11 @@ const Dashboard = ({ auth, logoutUser }) => {
     }
   }, [auth.isAuthenticated, history]);
 
+  // Keep this for potential future use or mobile version
   const onLogoutClick = (e) => {
     e.preventDefault();
     logoutUser();
+    history.push("/login");
   };
 
   const onUpdateClick = async (e) => {
@@ -156,6 +158,7 @@ const Dashboard = ({ auth, logoutUser }) => {
                   <i className="material-icons left">add_circle</i>
                   Buy
                 </button>
+
                 <button
                   onClick={handleSellClick}
                   className="btn waves-effect waves-light red"

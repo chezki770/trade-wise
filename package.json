@@ -1,36 +1,16 @@
 {
-  "name": "stock-app",
+  "name": "stock-app-root",
   "version": "1.0.0",
-  "description": "A full-stack stock trading web app.",
-  "main": "server.js",
+  "description": "Root package for stock trading web app",
   "scripts": {
-    "client-install": "npm install --prefix client",
-    "start": "node server.js",
-    "server": "nodemon server.js",
-    "client": "npm start --prefix client",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix client && npm run build --prefix client",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "axios": "^0.19.0",
-    "bcryptjs": "^2.4.3",
-    "body-parser": "^1.19.0",
     "concurrently": "^4.1.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.17.1",
-    "is-empty": "^1.2.0",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.7.5",
-    "passport": "^0.4.0",
-    "passport-jwt": "^4.0.0",
-    "react-scripts": "^5.0.1",
-    "validator": "^11.1.0"
-  },
-  "devDependencies": {
-    "nodemon": "^1.19.3"
+    "react-slick": "^0.30.2",
+    "slick-carousel": "^1.8.1"
   }
 }
