@@ -1,4 +1,3 @@
-// In App.js
 import React, { useEffect } from "react";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import jwt_decode from "jwt-decode";
@@ -19,10 +18,11 @@ import Dashboard from "./components/dashboard/Dashboard";
 import History from "./components/dashboard/History";
 import AdminDashboard from "./components/admin/AdminDashboard";
 
-// Import new pages
-import Learn from "./Pages/Learn";
-import About from "./Pages/About";
-import FAQ from "./Pages/FAQ";
+// Import pages
+import Learn from "./Pages/Learn/learn.js";
+import About from "./Pages/About/About.js";
+import FAQ from "./Pages/FAQ/faq.js";
+import NewsPage from "./components/news/NewsPage";
 
 // Utility function to check and set the current user on app load
 const checkTokenAndAuthenticate = () => {
@@ -44,23 +44,24 @@ const checkTokenAndAuthenticate = () => {
 const App = () => {
   useEffect(() => {
     checkTokenAndAuthenticate();
-  },[]);
+  }, []);
 
   return (
     <Provider store={store}>
       <BrowserRouter>
         <div className="App">
           <Navbar />
-          <Route exact path="/" component={Landing} />
-          <Route exact path="/register" component={Register} />
-          <Route exact path="/login" component={Login} />
           <Switch>
-            <PrivateRoute exact path="/dashboard" component={Dashboard} />
-            <PrivateRoute exact path="/history" component={History} />
-            <AdminRoute exact path="/admin" component={AdminDashboard} />
+            <Route exact path="/" component={Landing} />
+            <Route exact path="/register" component={Register} />
+            <Route exact path="/login" component={Login} />
             <Route exact path="/learn" component={Learn} />
             <Route exact path="/about" component={About} />
             <Route exact path="/faq" component={FAQ} />
+            <Route exact path="/news" component={NewsPage} />
+            <PrivateRoute exact path="/dashboard" component={Dashboard} />
+            <PrivateRoute exact path="/history" component={History} />
+            <AdminRoute exact path="/admin" component={AdminDashboard} />
           </Switch>
         </div>
       </BrowserRouter>

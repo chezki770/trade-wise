@@ -77,7 +77,21 @@ class Navbar extends Component {
               padding: "16px",
             }}
           >
-            Portfolio
+            Dashboard
+          </Link>
+        </li>
+        <li>
+          <Link
+            className="col s3 black-text"
+            to="/news"
+            style={{
+              color: "grey",
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              padding: "16px",
+            }}
+          >
+            News
           </Link>
         </li>
         <li>
@@ -91,7 +105,7 @@ class Navbar extends Component {
               padding: "16px",
             }}
           >
-            about
+            About
           </Link>
         </li> 
         <li>
@@ -190,4 +204,3 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, { logoutUser })(Navbar);
-
