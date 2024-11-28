@@ -1,6 +1,21 @@
 import React from "react";
 import Footer from "../../components/layout/Footer";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import "./style.css";
+
+const CustomArrow = ({ direction, onClick }) => (
+  <button
+    className={`custom-arrow ${direction}-arrow`}
+    onClick={onClick}
+    aria-label={`${direction} slide`}
+  >
+    <i className="material-icons">
+      {direction === 'prev' ? 'arrow_back_ios' : 'arrow_forward_ios'}
+    </i>
+  </button>
+);
 
 const FeatureCard = ({ icon, title, description }) => (
   <div className="feature-card">
@@ -34,6 +49,32 @@ const About = () => {
     }
   ];
 
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    nextArrow: <CustomArrow direction="next" />,
+    prevArrow: <CustomArrow direction="prev" />,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1
+        }
+      }
+    ]
+  };
+
   return (
     <div className="about-page">
       <div className="about-container">
@@ -51,14 +92,18 @@ const About = () => {
         </section>
 
         {/* Features Section */}
-        <section className="features-section">
+        <div className="features-section">
           <h2 className="section-title">What We Offer</h2>
           <div className="features-grid">
-            {features.map((feature, index) => (
-              <FeatureCard key={index} {...feature} />
-            ))}
+            <Slider {...sliderSettings}>
+              {features.map((feature, index) => (
+                <div key={index} className="carousel-slide">
+                  <FeatureCard {...feature} />
+                </div>
+              ))}
+            </Slider>
           </div>
-        </section>
+        </div>
 
         {/* Mission Section */}
         <section className="mission-section">
@@ -76,24 +121,6 @@ const About = () => {
                 hands-on learning and real-world market experience."
               </blockquote>
             </div>
-          </div>
-        </section>
-
-        {/* Contact Section */}
-        <section className="contact-section">
-          <h2 className="section-title">Get in Touch</h2>
-          <p className="contact-text">
-            Have questions or suggestions? We'd love to hear from you!
-          </p>
-          <div className="contact-buttons">
-            <a href="mailto:support@tradewise.com" className="contact-button email">
-              <i className="material-icons">email</i>
-              Email Us
-            </a>
-            <a href="#" className="contact-button github">
-              <i className="material-icons">code</i>
-              GitHub
-            </a>
           </div>
         </section>
       </div>
