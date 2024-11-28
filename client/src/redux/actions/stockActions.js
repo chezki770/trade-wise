@@ -60,15 +60,19 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
 
         console.log("Fetching stock data...");
         // Use our backend endpoint instead of calling Alpha Vantage directly
-        const response = await axios.get(`/api/stock/daily/${tradeInfo.symbol}`);
+        const response = await axios.get(`/api/stock/price/${tradeInfo.symbol}`);
 
-        if (!response.data["Time Series (Daily)"]) {
-            throw new Error("No stock data received");
+        if (!response.data || !response.data.valid) {
+            throw new Error("Invalid stock data received");
         }
 
-        const timeSeriesData = response.data["Time Series (Daily)"];
-        const latestDate = Object.keys(timeSeriesData)[0];
-        const stockInfo = timeSeriesData[latestDate];
+        const stockInfo = {
+            "1. open": response.data.openPrice.toString(),
+            "2. high": response.data.currentPrice.toString(),
+            "3. low": response.data.currentPrice.toString(),
+            "4. close": response.data.currentPrice.toString(),
+            "5. volume": "0"
+        };
 
         const tradeData = {
             userId: userData.id,
@@ -112,8 +116,8 @@ export const sellStock = (userData, tradeInfo) => async (dispatch) => {
         };
 
         // Make the sell request
-        const response = await axios.post("/server/api/users/sellStock", tradeData);
-        dispatch(returnSale(response.data));
+        const sellResponse = await axios.post("/api/users/sellStock", tradeData);
+        dispatch(returnSale(sellResponse.data));
     } catch (err) {
         dispatch({
             type: GET_ERRORS,
@@ -126,7 +130,7 @@ export const sellStock = (userData, tradeInfo) => async (dispatch) => {
 export const updateStocks = (userData) => async (dispatch) => {
     try {
         const data = { id: userData.id };
-        const response = await axios.post("/server/api/users/updateStocks", data);
+        const response = await axios.post("/api/users/updateStocks", data);
         dispatch(returnUpdate(response.data));
     } catch (err) {
         dispatch({
