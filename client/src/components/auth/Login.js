@@ -22,14 +22,14 @@ class Login extends Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.auth.isAuthenticated) {
-            this.redirectBasedOnRole(nextProps.auth.user);
+    componentDidUpdate(prevProps) {
+        if (this.props.auth.isAuthenticated && !prevProps.auth.isAuthenticated) {
+            this.redirectBasedOnRole(this.props.auth.user);
         }
 
-        if (nextProps.errors) {
+        if (this.props.errors !== prevProps.errors) {
             this.setState({
-                errors: nextProps.errors
+                errors: this.props.errors
             });
         }
     }

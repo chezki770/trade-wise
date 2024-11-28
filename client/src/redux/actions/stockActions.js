@@ -8,21 +8,14 @@ import {
     UPDATE_STOCKS
 } from "./types";
 
-const BASE_URL = "https://www.alphavantage.co/query?";
-const API_KEY = "&apikey=5ETEDSPX3VTJD6TR";
-
 // Helper function to fetch stock info
 const fetchStockInfo = async (symbol) => {
     try {
-        const response = await axios.get(`${BASE_URL}function=TIME_SERIES_DAILY&symbol=${symbol}${API_KEY}`);
-        const data = response.data["Time Series (Daily)"];
-        if (!data) throw new Error("Invalid symbol or no data available");
-
-        const latestDate = Object.keys(data)[0];
-        const stockInfo = data[latestDate];
-
-        if (!stockInfo) throw new Error("Failed to retrieve stock data for the latest date");
-
+        const response = await axios.get(`/api/stock/price/${symbol}`);
+        const stockInfo = response.data;
+        
+        if (!stockInfo) throw new Error("Failed to retrieve stock data");
+        
         return stockInfo;
     } catch (err) {
         throw new Error(`Stock API Error: ${err.message}`);
