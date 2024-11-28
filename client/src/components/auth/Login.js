@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { loginUser } from "../../redux/actions/authActions";
 import classnames from "classnames";
+import "./Login.css";
 
 class Login extends Component {
     constructor() {
@@ -11,23 +12,22 @@ class Login extends Component {
         this.state = {
             email: "",
             password: "",
-            errors: {}
+            errors: {},
+            showPassword: false
         };
     }
 
     componentDidMount() {
-        // If logged in and user navigates to Login page, should redirect
         if (this.props.auth.isAuthenticated) {
             this.redirectBasedOnRole(this.props.auth.user);
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.auth.isAuthenticated) {
+        if (nextProps.auth.isAuthenticated && nextProps.auth.user) {
+            this.setState({ errors: {} }); // Clear any errors
             this.redirectBasedOnRole(nextProps.auth.user);
-        }
-
-        if (nextProps.errors) {
+        } else if (nextProps.errors && !nextProps.auth.isAuthenticated) {
             this.setState({
                 errors: nextProps.errors
             });
@@ -35,7 +35,6 @@ class Login extends Component {
     }
 
     redirectBasedOnRole = (user) => {
-        console.log("Redirecting based on role:", user); // Debug log
         if (user.isAdmin) {
             this.props.history.push("/admin");
         } else {
@@ -45,6 +44,12 @@ class Login extends Component {
 
     onChange = e => {
         this.setState({ [e.target.id]: e.target.value });
+    };
+
+    togglePasswordVisibility = () => {
+        this.setState(prevState => ({
+            showPassword: !prevState.showPassword
+        }));
     };
 
     onSubmit = e => {
@@ -60,74 +65,75 @@ class Login extends Component {
     };
 
     render() {
-        const { errors } = this.state;
+        const { errors, showPassword } = this.state;
 
         return (
-            <div className="container">
-                <div style={{ marginTop: "4rem" }} className="row">
-                    <div className="col s8 offset-s2">
-                        <Link to="/" className="btn-flat waves-effect">
-                            <i className="material-icons left">keyboard_backspace</i> Back to
-                            home
-                        </Link>
-                        <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                            <h4>
-                                <b>Login</b> below
-                            </h4>
-                            <p className="grey-text text-darken-1">
-                                Don't have an account? <Link to="/register">Register</Link>
-                            </p>
+            <div className="login-container">
+                <div className="login-card">
+                    <div className="login-header">
+                        <h1>Welcome Back</h1>
+                        <p>Enter your credentials to continue</p>
+                    </div>
+                    <form noValidate onSubmit={this.onSubmit}>
+                        <div className="form-group">
+                            <input
+                                onChange={this.onChange}
+                                value={this.state.email}
+                                error={errors.email}
+                                id="email"
+                                type="email"
+                                className={classnames("form-control", {
+                                    invalid: errors.email || errors.emailnotfound
+                                })}
+                                placeholder=" "
+                            />
+                            <label htmlFor="email" className="form-label">Email</label>
+                            {(errors.email || errors.emailnotfound) && (
+                                <span className="error-message">
+                                    {errors.email || errors.emailnotfound}
+                                </span>
+                            )}
                         </div>
-                        <form noValidate onSubmit={this.onSubmit}>
-                            <div className="input-field col s12">
-                                <input
-                                    onChange={this.onChange}
-                                    value={this.state.email}
-                                    error={errors.email}
-                                    id="email"
-                                    type="email"
-                                    className={classnames("", {
-                                        invalid: errors.email || errors.emailnotfound
-                                    })}
-                                />
-                                <label htmlFor="email">Email</label>
-                                <span className="red-text">
-                                    {errors.email}
-                                    {errors.emailnotfound}
+                        <div className="form-group password-field">
+                            <input
+                                onChange={this.onChange}
+                                value={this.state.password}
+                                error={errors.password}
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                className={classnames("form-control", {
+                                    invalid: errors.password || errors.passwordincorrect
+                                })}
+                                placeholder=" "
+                            />
+                            <label htmlFor="password" className="form-label">Password</label>
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={this.togglePasswordVisibility}
+                            >
+                                <i className="material-icons">
+                                    {showPassword ? "visibility_off" : "visibility"}
+                                </i>
+                            </button>
+                            {(errors.password || errors.passwordincorrect) && (
+                                <span className="error-message">
+                                    {errors.password || errors.passwordincorrect}
                                 </span>
-                            </div>
-                            <div className="input-field col s12">
-                                <input
-                                    onChange={this.onChange}
-                                    value={this.state.password}
-                                    error={errors.password}
-                                    id="password"
-                                    type="password"
-                                    className={classnames("", {
-                                        invalid: errors.password || errors.passwordincorrect
-                                    })}
-                                />
-                                <label htmlFor="password">Password</label>
-                                <span className="red-text">
-                                    {errors.password}
-                                    {errors.passwordincorrect}
-                                </span>
-                            </div>
-                            <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                                <button
-                                    style={{
-                                        width: "150px",
-                                        borderRadius: "3px",
-                                        letterSpacing: "1.5px",
-                                        marginTop: "1rem"
-                                    }}
-                                    type="submit"
-                                    className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                                >
-                                    Login
-                                </button>
-                            </div>
-                        </form>
+                            )}
+                        </div>
+                        <button type="submit" className="btn-login">
+                            Login
+                        </button>
+                    </form>
+                    <div className="login-footer">
+                        Don't have an account?<Link to="/register">Sign up</Link>
+                    </div>
+                    <div className="login-footer">
+                        <Link to="/" style={{ color: '#7f8c8d' }}>
+                            <i className="material-icons" style={{ verticalAlign: 'middle', fontSize: '20px' }}>arrow_back</i>
+                            Back to home
+                        </Link>
                     </div>
                 </div>
             </div>

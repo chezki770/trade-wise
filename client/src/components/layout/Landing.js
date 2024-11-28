@@ -1,44 +1,62 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import "./Landing.css";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChartLine, faGraduationCap, faChartPie, faHandHoldingDollar } from '@fortawesome/free-solid-svg-icons';
 
 class Landing extends Component {
     render() {
         return (
-            <div style={{ height: "75vh" }} className="container valign-wrapper">
-                <div className="row">
-                    <div className="col s12 center-align">
-                        <h4>
-                            <b>Trade Stocks</b> with this {" "}
-                            <span style={{ fontFamily: "monospace"}}>Stock Trading Web App</span>!
-                        </h4>
-                        <p className="flow-text grey-text text-darken-1">
-                            Trade stocks on this minimal platform!
-                        </p>
-                        <br />
-                        <div className="col s6">
-                                      <Link
-                                      to="/register"
-                                      style={{
-                                        width: "140px",
-                                        borderRadius: "3px",
-                                        letterSpacing: "1.5px"
-                                      }}
-                                      className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                                    >
-                                      Register
-                                    </Link>
+            <div className="landing-container">
+                <div className="landing-content">
+                    <h1 className="landing-title">
+                        Welcome to <span>Trade Wise</span>
+                    </h1>
+                    <p className="landing-subtitle">
+                        Master the art of trading with our comprehensive platform. 
+                        Practice trading strategies, learn from experts, and build your financial future.
+                    </p>
+                    
+                    <div className="buttons-container">
+                        <Link to="/signup" className="landing-btn btn blue">
+                            Sign Up
+                        </Link>
+                        <Link to="/login" className="landing-btn btn">
+                            Log In
+                        </Link>
+                    </div>
+
+                    <div className="features-section">
+                        <div className="feature-card">
+                            <FontAwesomeIcon icon={faChartLine} className="feature-icon" />
+                            <h3 className="feature-title">Real-time Trading</h3>
+                            <p className="feature-description">
+                                Experience real-time market simulation with live data and authentic trading conditions.
+                            </p>
                         </div>
-                        <div className="col s6">
-                            <Link
-                                to="/login"
-                                style={{
-                                    width: "140px",
-                                    borderRadius: "3px",
-                                    letterSpacing: "1.5px"
-                                }}
-                                className="btn btn-large btn-flat waves-effect white black-text">
-                                    Login
-                                </Link>
+                        
+                        <div className="feature-card">
+                            <FontAwesomeIcon icon={faGraduationCap} className="feature-icon" />
+                            <h3 className="feature-title">Learn & Grow</h3>
+                            <p className="feature-description">
+                                Access comprehensive educational resources and expert trading insights.
+                            </p>
+                        </div>
+                        
+                        <div className="feature-card">
+                            <FontAwesomeIcon icon={faChartPie} className="feature-icon" />
+                            <h3 className="feature-title">Portfolio Analysis</h3>
+                            <p className="feature-description">
+                                Track and analyze your portfolio performance with advanced analytics tools.
+                            </p>
+                        </div>
+                        
+                        <div className="feature-card">
+                            <FontAwesomeIcon icon={faHandHoldingDollar} className="feature-icon" />
+                            <h3 className="feature-title">Risk-Free Practice</h3>
+                            <p className="feature-description">
+                                Practice trading strategies without risking real money in a safe environment.
+                            </p>
                         </div>
                     </div>
                 </div>

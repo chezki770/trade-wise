@@ -37,6 +37,12 @@ const Footer = () => {
   return (
     <footer className="footer">
       <div className="footer-content">
+        <div className="contact-section">
+          <h2 className="section-title">Get in Touch</h2>
+          <p className="contact-text">
+            Have questions or suggestions? We'd love to hear from you!
+          </p>
+        </div>
         <div className="developers-links">
           {Object.entries(groupedLinks).map(([person, links]) => (
             <div key={person} className="developer-section">
@@ -50,7 +56,6 @@ const Footer = () => {
                     rel="noopener noreferrer"
                     className="social-link"
                     title={link.name}
-                    aria-label={link.name}
                   >
                     <i className={link.icon}></i>
                   </a>
