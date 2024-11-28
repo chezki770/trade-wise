@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { logoutUser } from "../../redux/actions/authActions";
 import { buyStock, sellStock } from "../../redux/actions/stockActions";
+import "./Dashboard.css";
 
 class Dashboard extends Component {
   state = {
@@ -173,7 +174,7 @@ class Dashboard extends Component {
                       {dailyStockChange >= 0 ? "+" : ""}
                       {dailyStockChange.toFixed(2)}
                       <br />
-                      ({dailyStockChangePercent.toFixed(2)}%)
+                      ({dailyStockChangePercent.toFixed(2)}%)}
                     </td>
                     <td>
                       <button
@@ -270,6 +271,14 @@ class Dashboard extends Component {
       </div>
     );
   };
+
+  componentDidUpdate(prevProps) {
+    // Check if the user's stocks have been updated
+    if (this.props.auth.user.ownedStocks !== prevProps.auth.user.ownedStocks) {
+      // Force a re-render of the table
+      this.forceUpdate();
+    }
+  }
 
   render() {
     const { user } = this.props.auth;

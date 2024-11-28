@@ -139,6 +139,20 @@ class Navbar extends Component {
         <li>
           <Link
             className="col s3 black-text"
+            to="/research"
+            style={{
+              color: "grey",
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              padding: "16px",
+            }}
+          >
+            Research
+          </Link>
+        </li>
+        <li>
+          <Link
+            className="col s3 black-text"
             to="/history"
             style={{
               color: "grey",

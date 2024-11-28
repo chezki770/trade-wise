@@ -1,0 +1,29 @@
+.card {
+  margin: 1rem 0;
+}
+
+.card-title {
+  font-weight: bold;
+}
+
+.input-field {
+  margin-bottom: 1rem;
+}
+
+.btn {
+  margin-right: 1rem;
+}
+
+.card-action {
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  margin-top: 1rem;
+}
+
+.grey-text {
+  margin: 0.5rem 0;
+}
+
+strong {
+  font-weight: bold;
+}

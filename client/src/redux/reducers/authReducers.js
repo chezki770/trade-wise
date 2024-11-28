@@ -11,7 +11,8 @@ const initialState = {
     loading: false
 };
 
-const authReducer = (state = initialState, action) => {
+// Export the named function
+export default function authReducer(state = initialState, action) {
     switch(action.type) {
         case SET_CURRENT_USER:
             console.log("SET CURRENT USER");    
@@ -28,6 +29,4 @@ const authReducer = (state = initialState, action) => {
         default:
             return state;
     }
-}
-
-export default authReducer;
+};

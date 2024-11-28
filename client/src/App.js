@@ -17,6 +17,7 @@ import AdminRoute from "./components/private-route/AdminRoute";
 import Dashboard from "./components/dashboard/Dashboard";
 import History from "./components/dashboard/History";
 import AdminDashboard from "./components/admin/AdminDashboard";
+import StockResearch from "./components/stock-research/StockResearch";
 
 // Import pages
 import Learn from "./Pages/Learn/learn.js";
@@ -60,6 +61,7 @@ const App = () => {
             <Route exact path="/faq" component={FAQ} />
             <Route exact path="/news" component={NewsPage} />
             <PrivateRoute exact path="/dashboard" component={Dashboard} />
+            <PrivateRoute exact path="/research" component={StockResearch} />
             <PrivateRoute exact path="/history" component={History} />
             <AdminRoute exact path="/admin" component={AdminDashboard} />
           </Switch>
