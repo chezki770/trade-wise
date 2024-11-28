@@ -1,4 +1,5 @@
 import axios from "axios";
+import setAuthToken from "../../utils/setAuthToken";
 
 import {
     GET_ERRORS,
@@ -7,117 +8,105 @@ import {
     UPDATE_STOCKS
 } from "./types";
 
-const url = "https://www.alphavantage.co/query?";
-const func = "function=TIME_SERIES_DAILY&symbol=";
-let symbol = "";
-const apiKey = "&apikey=5ETEDSPX3VTJD6TR"
-    
-export const buyStock = (userData, tradeInfo) => dispatch => {
-    axios
-        .post("/api/users/stockRequest", tradeInfo)
-        .then(res => {
-            console.log("POST REQUEST")
-            symbol = tradeInfo.symbol;
-            return axios.get(url + func + symbol + apiKey);
-        })
-        .then(res => {
-            if(!res.data) throw new Error("Improper symbol");
-            console.log("POST API CALL")
-            const obj = res.data["Time Series (Daily)"];
-            console.log("POST OBJ")
-            const dateStr = Object.keys(obj)[0];
-            console.log("POST DATESTR")
-            let info = res.data["Time Series (Daily)"][dateStr];
-            if(!info) { 
-                console.log("WHOOPS")
-                throw new Error("STOCK INFO ERROR"); 
-            }
+const BASE_URL = "https://www.alphavantage.co/query?";
+const API_KEY = "&apikey=5ETEDSPX3VTJD6TR";
 
-            console.log("UD: " + userData)
-            const tradeData = {
-                userId: userData.id,
-                symbol: symbol,
-                quantity: tradeInfo.quantity,
-                stockInfo: info
-            }
-            console.log("tD userID: " + tradeData.userId    )
-            console.log("BEFORE buyStock")
-            axios.post("/api/users/buyStock", tradeData)
-            .then(res => {
-                console.log("Returning Purchase")
-                console.log("response data:", res.data)
-                dispatch(returnPurchase(res.data));
-            })
-        })
-        .catch(err =>
-            dispatch({
-                type: GET_ERRORS,
-                payload: err
-            })
-        )
-}
+// Helper function to fetch stock info
+const fetchStockInfo = async (symbol) => {
+    try {
+        const response = await axios.get(`${BASE_URL}function=TIME_SERIES_DAILY&symbol=${symbol}${API_KEY}`);
+        const data = response.data["Time Series (Daily)"];
+        if (!data) throw new Error("Invalid symbol or no data available");
 
-export const sellStock = (userData, tradeInfo) => dispatch => {
-    axios
-        .post("/server/api/users/stockRequest", tradeInfo)
-        .then(res => {
-            symbol = tradeInfo.symbol;
-            return axios.get(url + func + symbol + apiKey);
-        })
-        .then(res => {
-            const obj = res.data["Time Series (Daily)"];
-            const dateStr = Object.keys(obj)[0];
-            let info = res.data["Time Series (Daily)"][dateStr];
-            if(!info) { throw new Error("STOCK INFO ERROR"); }
+        const latestDate = Object.keys(data)[0];
+        const stockInfo = data[latestDate];
 
-            const tradeData = {
-                userId: userData.id,
-                symbol: symbol,
-                quantity: tradeInfo.quantity,
-                stockInfo: info
-            }
-            axios.post("/server/api/users/sellStock", tradeData)
-            .then(res => {
-                dispatch(returnSale(res));
-            })
-        })
-        .catch(err =>
-            dispatch({
-                type: GET_ERRORS,
-                payload: err
-            })
-        )
-}
+        if (!stockInfo) throw new Error("Failed to retrieve stock data for the latest date");
 
-export const returnPurchase = userData => {
-    return {
-        type: BUY_STOCK,
-        payload: userData 
+        return stockInfo;
+    } catch (err) {
+        throw new Error(`Stock API Error: ${err.message}`);
     }
-}
+};
 
-export const returnSale = userData => {
-    return {
-        type: SELL_STOCK,
-        payload: userData
+// Buy Stock Action
+export const buyStock = (userData, tradeInfo) => async (dispatch) => {
+    try {
+        // Set Authorization Header
+        const token = localStorage.getItem("jwtToken");
+        if (token) setAuthToken(token);
+
+        // Validate and fetch stock info
+        const stockInfo = await fetchStockInfo(tradeInfo.symbol);
+
+        const tradeData = {
+            userId: userData.id,
+            symbol: tradeInfo.symbol,
+            quantity: tradeInfo.quantity.toString(),
+            stockInfo
+        };
+
+        // Make the purchase request
+        const response = await axios.post("/api/users/buyStock", tradeData);
+        dispatch(returnPurchase(response.data));
+    } catch (err) {
+        dispatch({
+            type: GET_ERRORS,
+            payload: err.message || "An error occurred while buying the stock"
+        });
     }
-}
+};
 
-export const updateStocks = userData => dispatch => {
-    const data = {
-        id: userData.id
+// Sell Stock Action
+export const sellStock = (userData, tradeInfo) => async (dispatch) => {
+    try {
+        // Validate and fetch stock info
+        const stockInfo = await fetchStockInfo(tradeInfo.symbol);
+
+        const tradeData = {
+            userId: userData.id,
+            symbol: tradeInfo.symbol,
+            quantity: tradeInfo.quantity.toString(),
+            stockInfo
+        };
+
+        // Make the sell request
+        const response = await axios.post("/server/api/users/sellStock", tradeData);
+        dispatch(returnSale(response.data));
+    } catch (err) {
+        dispatch({
+            type: GET_ERRORS,
+            payload: err.message || "An error occurred while selling the stock"
+        });
     }
-    axios
-    .post("/server/api/users/updateStocks", data)
-    .then(res => {
-        dispatch(returnUpdate(res));
-    })
-}
+};
 
-export const returnUpdate = userData => {
-    return {
-        type: UPDATE_STOCKS,
-        payload: userData
+// Update Stocks Action
+export const updateStocks = (userData) => async (dispatch) => {
+    try {
+        const data = { id: userData.id };
+        const response = await axios.post("/server/api/users/updateStocks", data);
+        dispatch(returnUpdate(response.data));
+    } catch (err) {
+        dispatch({
+            type: GET_ERRORS,
+            payload: err.message || "An error occurred while updating stocks"
+        });
     }
-}
+};
 
+// Action Creators
+export const returnPurchase = (userData) => ({
+    type: BUY_STOCK,
+    payload: userData
+});
+
+export const returnSale = (userData) => ({
+    type: SELL_STOCK,
+    payload: userData
+});
+
+export const returnUpdate = (userData) => ({
+    type: UPDATE_STOCKS,
+    payload: userData
+});
