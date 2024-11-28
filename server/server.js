@@ -1,11 +1,43 @@
 const path = require("path");
 
-// Load environment variables
-require("dotenv").config({ path: path.resolve(__dirname, '../.env') });
+// Load env variables
+const dotenv = require('dotenv');
+const result = dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+// Debug env loading
+if (result.error) {
+    console.error('Error loading .env file:', result.error);
+} else {
+    console.log('Successfully loaded .env file');
+}
+
+// Debug the current working directory and .env path
+console.log('Current working directory:', process.cwd());
+console.log('.env file path:', path.resolve(__dirname, '../.env'));
+console.log('All environment variables:', process.env);
+
+// Use existing JWT_SECRET as SECRET_OR_KEY if not set
+if (!process.env.SECRET_OR_KEY && process.env.JWT_SECRET) {
+    process.env.SECRET_OR_KEY = process.env.JWT_SECRET;
+    console.log('Using JWT_SECRET as SECRET_OR_KEY');
+}
+
+// Check required environment variables
+const requiredEnvVars = ['ALPHAVANTAGE_API_KEY', 'MONGODB_URI', 'SECRET_OR_KEY'];
+const missingEnvVars = requiredEnvVars.filter(varName => {
+    const exists = !!process.env[varName];
+    console.log(`Checking ${varName}:`, exists ? 'Present' : 'Missing');
+    return !exists;
+});
+
+if (missingEnvVars.length > 0) {
+    console.error('Missing required environment variables:', missingEnvVars);
+    process.exit(1);
+}
 
 // Debug log to check environment variables
 console.log('Environment Variables Check:', {
-    ALPHA_VANTAGE_API_KEY: process.env.ALPHA_VANTAGE_API_KEY ? 'Present' : 'Not found',
+    ALPHAVANTAGE_API_KEY: process.env.ALPHAVANTAGE_API_KEY ? 'Present' : 'Not found',
     NODE_ENV: process.env.NODE_ENV,
     PWD: process.cwd()
 });
@@ -19,7 +51,7 @@ const cors = require("cors");
 // Load routes
 const users = require("./routes/auth/users");
 const news = require("./routes/news");
-const stock = require("./routes/auth/stock");
+const stocks = require("./routes/api/stocks");
 
 const app = express();
 
@@ -63,7 +95,7 @@ app.use((req, res, next) => {
 // Debug middleware to log environment variables on each request
 app.use((req, res, next) => {
     console.log('Environment Variables:', {
-        ALPHA_VANTAGE_API_KEY: process.env.ALPHA_VANTAGE_API_KEY ? 'Set' : 'Not Set',
+        ALPHAVANTAGE_API_KEY: process.env.ALPHAVANTAGE_API_KEY ? 'Set' : 'Not Set',
         NODE_ENV: process.env.NODE_ENV
     });
     next();
@@ -72,12 +104,25 @@ app.use((req, res, next) => {
 // Routes
 app.use("/api/users", users);
 app.use("/api/news", news);
-app.use("/api/stock", stock);
+app.use("/api/stocks", stocks);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);
     console.error('Stack:', err.stack);
+    
+    // Handle Axios errors
+    if (err.isAxiosError) {
+        const status = err.response?.status || 500;
+        const message = err.response?.data?.error || err.message;
+        return res.status(status).json({
+            error: 'API Error',
+            message: message,
+            details: err.response?.data
+        });
+    }
+    
+    // Handle other errors
     res.status(500).json({
         error: 'Internal Server Error',
         message: err.message,
@@ -100,7 +145,7 @@ const startServer = (port = process.env.PORT || 8080) => {
     const server = app.listen(port, () => {
         console.log(`Server is running on port ${port}`);
         console.log('Environment check on server start:', {
-            ALPHA_VANTAGE_API_KEY: process.env.ALPHA_VANTAGE_API_KEY ? 'Present' : 'Not found',
+            ALPHAVANTAGE_API_KEY: process.env.ALPHAVANTAGE_API_KEY ? 'Present' : 'Not found',
             NODE_ENV: process.env.NODE_ENV,
             PWD: process.cwd()
         });

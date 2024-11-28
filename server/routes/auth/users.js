@@ -341,7 +341,7 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
         }
 
         // Calculate current stock price and sale proceeds
-        const currentPrice = (Number(stockInfo["2. high"]) + Number(stockInfo["3. low"])) / 2;
+        const currentPrice = stockInfo.currentPrice;
         const saleProceeds = currentPrice * quantity;
 
         console.log("Current Price:", currentPrice);

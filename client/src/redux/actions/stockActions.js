@@ -5,7 +5,8 @@ import {
     GET_ERRORS,
     BUY_STOCK,
     SELL_STOCK,
-    UPDATE_STOCKS
+    UPDATE_STOCKS,
+    SET_CURRENT_USER
 } from "./types";
 
 // Helper function to fetch stock info
@@ -86,6 +87,13 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
         
         console.log("Buy request successful:", buyResponse.data);
         dispatch(returnPurchase(buyResponse.data));
+        
+        // Update user data after successful purchase
+        const updatedUserResponse = await axios.get("/api/users/current");
+        dispatch({
+            type: SET_CURRENT_USER,
+            payload: updatedUserResponse.data
+        });
 
     } catch (err) {
         console.error("Error occurred in buyStock:", err);
@@ -117,7 +125,16 @@ export const sellStock = (userData, tradeInfo) => async (dispatch) => {
 
         // Make the sell request
         const sellResponse = await axios.post("/api/users/sellStock", tradeData);
+        console.log("Sell request successful:", sellResponse.data);
         dispatch(returnSale(sellResponse.data));
+        
+        // Update user data after successful sale
+        const updatedUserResponse = await axios.get("/api/users/current");
+        dispatch({
+            type: SET_CURRENT_USER,
+            payload: updatedUserResponse.data
+        });
+
     } catch (err) {
         dispatch({
             type: GET_ERRORS,
