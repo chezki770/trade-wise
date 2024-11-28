@@ -19,6 +19,7 @@ const cors = require("cors");
 // Load routes
 const users = require("./routes/auth/users");
 const news = require("./routes/news");
+const stock = require("./routes/auth/stock");
 
 const app = express();
 
@@ -35,7 +36,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // DB Config
-const db = process.env.MONGODB_URI || "mongodb://localhost:27017/tradewise";
+const db = process.env.MONGODB_URI || "mongodb://localhost:27017/stockportfolio";
 
 // Connect to MongoDB
 mongoose
@@ -71,6 +72,7 @@ app.use((req, res, next) => {
 // Routes
 app.use("/api/users", users);
 app.use("/api/news", news);
+app.use("/api/stock", stock);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

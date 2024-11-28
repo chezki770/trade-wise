@@ -1,39 +1,51 @@
 const Validator = require("validator");
 const isEmpty = require("is-empty");
 
-function isTickerSymbol(data) {
-    if(data.length >= 1 && data.length <= 5) {
-        return true;
-    }
-    else return false;
+function isValidTickerSymbol(symbol) {
+    // Check if symbol is 1-5 uppercase letters
+    return /^[A-Z]{1,5}$/.test(symbol);
 }
 
-module.exports = function validatePurchaseInput (data) {
+module.exports = function validatePurchaseInput(data) {
     let errors = {};
 
-    // Convert empty fields to an empty string to use validator functiosn
-    data.symbol = !isEmpty(data.symbol) ? data.symbol : "";
-    data.quantity = !isEmpty(data.quantity) ? data.quantity : "";
+    // Convert empty fields to empty strings for validation
+    data.symbol = !isEmpty(data.symbol?.toString()) ? data.symbol.toString().toUpperCase() : "";
+    
+    // Handle quantity separately since it's a number
+    const quantity = data.quantity !== undefined && data.quantity !== null ? 
+        Number(data.quantity) : null;
 
-    // Symbol checks
-    if (Validator.isEmpty(data.symbol)) {
+    // Symbol validation
+    if (isEmpty(data.symbol)) {
         errors.symbol = "A ticker symbol is required";
-    } else if (!isTickerSymbol(data.symbol)) {
-        errors.symbol = "Invalid ticker symbol length";
+    } else if (!isValidTickerSymbol(data.symbol)) {
+        errors.symbol = "Invalid ticker symbol format (1-5 uppercase letters)";
     }
 
-// Quantity Check
-if (Validator.isEmpty(data.quantity)) {
-    errors.quantity = "Quantity is required";
-} else if (!Validator.isInt(data.quantity)) {
-    errors.quantity = "Quantity must be a number";
-} else if (Number(data.quantity) <= 0) {  // Convert to number and check if positive
-    errors.quantity = "Quantity must be above zero";
-}
+    // Quantity validation
+    if (quantity === null) {
+        errors.quantity = "Quantity is required";
+    } else if (isNaN(quantity)) {
+        errors.quantity = "Quantity must be a number";
+    } else if (!Number.isInteger(quantity)) {
+        errors.quantity = "Quantity must be a whole number";
+    } else if (quantity <= 0) {
+        errors.quantity = "Quantity must be greater than zero";
+    } else if (quantity > 1000000) {
+        errors.quantity = "Quantity exceeds maximum allowed (1,000,000)";
+    }
 
-console.log(errors)
-return {
-    errors,
-    isValid: isEmpty(errors)
-};
+    // Log validation results for debugging
+    console.log("Validation Input:", { 
+        symbol: data.symbol, 
+        quantity: quantity,
+        originalQuantity: data.quantity 
+    });
+    console.log("Validation Errors:", errors);
+
+    return {
+        errors,
+        isValid: isEmpty(errors)
+    };
 };

@@ -18,18 +18,20 @@ class Login extends Component {
     }
 
     componentDidMount() {
+        // Redirect if already authenticated
         if (this.props.auth.isAuthenticated) {
             this.redirectBasedOnRole(this.props.auth.user);
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.auth.isAuthenticated && nextProps.auth.user) {
-            this.setState({ errors: {} }); // Clear any errors
-            this.redirectBasedOnRole(nextProps.auth.user);
-        } else if (nextProps.errors && !nextProps.auth.isAuthenticated) {
+    componentDidUpdate(prevProps) {
+        if (this.props.auth.isAuthenticated && !prevProps.auth.isAuthenticated) {
+            this.redirectBasedOnRole(this.props.auth.user);
+        }
+
+        if (this.props.errors !== prevProps.errors) {
             this.setState({
-                errors: nextProps.errors
+                errors: this.props.errors
             });
         }
     }
@@ -40,7 +42,7 @@ class Login extends Component {
         } else {
             this.props.history.push("/dashboard");
         }
-    }
+    };
 
     onChange = e => {
         this.setState({ [e.target.id]: e.target.value });
@@ -127,11 +129,11 @@ class Login extends Component {
                         </button>
                     </form>
                     <div className="login-footer">
-                        Don't have an account?<Link to="/register">Sign up</Link>
+                        Don't have an account? <Link to="/register">Sign up</Link>
                     </div>
                     <div className="login-footer">
-                        <Link to="/" style={{ color: '#7f8c8d' }}>
-                            <i className="material-icons" style={{ verticalAlign: 'middle', fontSize: '20px' }}>arrow_back</i>
+                        <Link to="/" style={{ color: "#7f8c8d" }}>
+                            <i className="material-icons" style={{ verticalAlign: "middle", fontSize: "20px" }}>arrow_back</i>
                             Back to home
                         </Link>
                     </div>

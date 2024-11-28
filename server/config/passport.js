@@ -1,10 +1,11 @@
-// In your config/passport.js file:
-
+// your config/passport.js file:
 const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const mongoose = require("mongoose");
-const User = mongoose.model("users");
+// const User = mongoose.model("users");
 const keys = require("./keys");
+const User = require("../models/User"); // Adjust the path based on your project structure
+
 
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
