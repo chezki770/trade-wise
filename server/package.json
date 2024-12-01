@@ -19,6 +19,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "is-empty": "^1.2.0",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.22",
     "passport": "^0.4.1",
