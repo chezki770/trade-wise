@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const Trade = require('../models/Trade');
+const ApiUsage = require('../models/ApiUsage');
 const { Parser } = require('json2csv');
 const mongoose = require('mongoose');
 
@@ -265,6 +266,76 @@ router.get('/system-metrics', auth, async (req, res) => {
     });
   } catch (err) {
     console.error('Error in system-metrics:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// @route   GET api/analytics/api-usage
+// @desc    Get API usage statistics
+// @access  Admin only
+router.get('/api-usage', auth, async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Access denied. Admin only.' });
+    }
+
+    const { startDate, endDate } = getDateRange(req);
+
+    // Get total API calls
+    const totalCalls = await ApiUsage.countDocuments({
+      timestamp: { $gte: startDate, $lte: endDate }
+    });
+
+    // Get calls by provider
+    const callsByProvider = await ApiUsage.aggregate([
+      {
+        $match: {
+          timestamp: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: '$provider',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get error rate
+    const errorCalls = await ApiUsage.countDocuments({
+      timestamp: { $gte: startDate, $lte: endDate },
+      responseStatus: { $gte: 400 }
+    });
+
+    // Get most used endpoints
+    const topEndpoints = await ApiUsage.aggregate([
+      {
+        $match: {
+          timestamp: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: '$endpoint',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      },
+      {
+        $limit: 5
+      }
+    ]);
+
+    res.json({
+      totalCalls,
+      callsByProvider,
+      errorRate: totalCalls > 0 ? (errorCalls / totalCalls) * 100 : 0,
+      topEndpoints
+    });
+  } catch (err) {
+    console.error('Error in api-usage:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

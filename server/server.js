@@ -53,6 +53,7 @@ const users = require("./routes/auth/users");
 const news = require("./routes/news");
 const stocks = require("./routes/api/stocks");
 const analytics = require("./routes/analytics");
+const apiUsageTracker = require("./middleware/apiUsageTracker");
 
 const app = express();
 
@@ -104,9 +105,13 @@ app.use((req, res, next) => {
     next();
 });
 
+// Use API usage tracker middleware for all routes
+app.use(apiUsageTracker());
+
 // Routes
 app.use("/api/users", users);
 app.use("/api/news", news);
+app.use("/api/stocks", apiUsageTracker('ALPHA_VANTAGE'));
 app.use("/api/stocks", stocks);
 app.use("/api/analytics", analytics);
 
