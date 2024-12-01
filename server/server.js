@@ -70,11 +70,13 @@ app.use(bodyParser.json());
 // DB Config
 const db = process.env.MONGODB_URI || "mongodb://localhost:27017/stockportfolio";
 
-// Connect to MongoDB
-mongoose
-    .connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log("MongoDB successfully connected"))
-    .catch(err => console.log(err));
+// Connect to MongoDB only if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+    mongoose
+        .connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
+        .then(() => console.log("MongoDB successfully connected"))
+        .catch(err => console.log(err));
+}
 
 // Passport middleware
 app.use(passport.initialize());
@@ -170,5 +172,10 @@ const startServer = (port = process.env.PORT || 8080) => {
     });
 };
 
-// Start the server
-startServer();
+// Start the server only if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+    startServer();
+}
+
+// Export for testing
+module.exports = app;

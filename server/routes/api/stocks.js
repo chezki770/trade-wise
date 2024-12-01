@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const passport = require("passport");
 
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHAVANTAGE_API_KEY;
 const ALPHA_VANTAGE_BASE_URL = process.env.ALPHAVANTAGE_BASE_URL;
@@ -17,10 +18,24 @@ const checkApiKey = (req, res, next) => {
   next();
 };
 
+// Authentication middleware
+const authenticateJWT = (req, res, next) => {
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (err) {
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    req.user = user;
+    next();
+  })(req, res, next);
+};
+
 // @route GET api/stocks/info/:symbol
 // @desc Get stock information
-// @access Public
-router.get('/info/:symbol', checkApiKey, async (req, res) => {
+// @access Private
+router.get('/info/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
   try {
     const { symbol } = req.params;
     
@@ -62,8 +77,8 @@ router.get('/info/:symbol', checkApiKey, async (req, res) => {
 
 // @route GET api/stock/price/:symbol
 // @desc Get stock price information
-// @access Public
-router.get('/price/:symbol', checkApiKey, async (req, res) => {
+// @access Private
+router.get('/price/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
   try {
     const { symbol } = req.params;
     
@@ -71,28 +86,35 @@ router.get('/price/:symbol', checkApiKey, async (req, res) => {
       return res.status(400).json({ error: 'Stock symbol is required' });
     }
 
-    console.log(`Fetching stock data for symbol: ${symbol}`);
-    const response = await axios.get(
-      `${ALPHA_VANTAGE_BASE_URL}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
-    );
+    console.log('Fetching stock data for symbol:', symbol);
+    
+    const response = await axios.get(`${ALPHA_VANTAGE_BASE_URL}`, {
+      params: {
+        function: 'GLOBAL_QUOTE',
+        symbol: symbol,
+        apikey: ALPHA_VANTAGE_API_KEY
+      }
+    });
 
     console.log('Alpha Vantage API response:', response.data);
 
-    if (!response.data || !response.data['Global Quote']) {
-      return res.status(404).json({ error: 'No data found for this symbol' });
+    const quote = response.data['Global Quote'];
+    
+    // Check if the quote is empty (invalid symbol)
+    if (!quote || Object.keys(quote).length === 0) {
+      return res.status(404).json({ error: 'Invalid stock symbol' });
     }
 
-    const quote = response.data['Global Quote'];
     const stockData = {
       valid: true,
-      symbol,
+      symbol: quote['01. symbol'],
       currentPrice: parseFloat(quote['05. price']),
       openPrice: parseFloat(quote['02. open']),
+      high: parseFloat(quote['03. high']),
+      low: parseFloat(quote['04. low']),
+      volume: parseInt(quote['06. volume']),
       change: parseFloat(quote['09. change']),
       changePercent: parseFloat(quote['10. change percent'].replace('%', '')),
-      volume: parseInt(quote['06. volume']),
-      high: parseFloat(quote['03. high']),
-      low: parseFloat(quote['04. low'])
     };
 
     res.json(stockData);
@@ -107,8 +129,8 @@ router.get('/price/:symbol', checkApiKey, async (req, res) => {
 
 // @route GET api/stocks/news/:symbol
 // @desc Get stock news and overview
-// @access Public
-router.get('/news/:symbol', checkApiKey, async (req, res) => {
+// @access Private
+router.get('/news/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
   try {
     const { symbol } = req.params;
 
@@ -176,8 +198,8 @@ router.get('/news/:symbol', checkApiKey, async (req, res) => {
 
 // @route GET api/stocks/history/:symbol
 // @desc Get stock price history
-// @access Public
-router.get('/history/:symbol', checkApiKey, async (req, res) => {
+// @access Private
+router.get('/history/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
   try {
     const { symbol } = req.params;
     
