@@ -81,10 +81,17 @@ class Dashboard extends Component {
     }, 0);
   };
 
+  calculateDailyChangePercent = () => {
+    const portfolioValue = this.calculatePortfolioValue();
+    const dailyChange = this.calculateDailyChange();
+    // Avoid division by zero by using the current portfolio value
+    return portfolioValue === 0 ? 0 : (dailyChange / portfolioValue) * 100;
+  };
+
   renderPortfolioSummary = () => {
     const portfolioValue = this.calculatePortfolioValue();
     const dailyChange = this.calculateDailyChange();
-    const dailyChangePercent = (dailyChange / (portfolioValue - dailyChange)) * 100;
+    const dailyChangePercent = this.calculateDailyChangePercent();
 
     return (
       <div className="row">
@@ -167,14 +174,14 @@ class Dashboard extends Component {
                   <tr key={stock.symbol}>
                     <td>{stock.symbol}</td>
                     <td>{stock.quantity}</td>
-                    <td>${stock.unit_price.toFixed(2)}</td>
+                    <td>${stock.avg_price ? stock.avg_price.toFixed(2) : stock.unit_price.toFixed(2)}</td>
                     <td>${stock.unit_price.toFixed(2)}</td>
                     <td>${totalValue.toFixed(2)}</td>
                     <td className={dailyStockChange >= 0 ? "green-text" : "red-text"}>
                       {dailyStockChange >= 0 ? "+" : ""}
                       {dailyStockChange.toFixed(2)}
                       <br />
-                      ({dailyStockChangePercent.toFixed(2)}%)}
+                      ({dailyStockChangePercent.toFixed(2)}%)
                     </td>
                     <td>
                       <button
@@ -212,6 +219,9 @@ class Dashboard extends Component {
           bottom: 0,
           zIndex: 1000,
         }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="trade-modal-title"
       >
         <div
           className="modal-content"
@@ -222,9 +232,22 @@ class Dashboard extends Component {
             margin: "100px auto",
             padding: "20px",
             borderRadius: "4px",
+            position: "relative",
           }}
         >
-          <h5>{tradeType === "buy" ? "Buy Stocks" : "Sell Stocks"}</h5>
+          <button
+            onClick={this.toggleTradeModal}
+            className="modal-close btn-flat"
+            style={{
+              position: "absolute",
+              right: "10px",
+              top: "10px",
+            }}
+            aria-label="Close modal"
+          >
+            ×
+          </button>
+          <h5 id="trade-modal-title">{tradeType === "buy" ? "Buy Stocks" : "Sell Stocks"}</h5>
           <form noValidate onSubmit={this.handleTrade}>
             <div className="input-field">
               <input

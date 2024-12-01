@@ -27,7 +27,7 @@ const fetchStockInfo = async (symbol) => {
     try {
         console.log(`Fetching stock info for symbol: ${symbol}`);
 
-        const response = await axios.get(`/api/stock/price/${symbol}`);
+        const response = await axios.get(`/api/stocks/price/${symbol}`);
         console.log(`Response received from API for ${symbol}:`, response);
 
         const stockInfo = response.data;
@@ -61,7 +61,7 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
 
         console.log("Fetching stock data...");
         // Use our backend endpoint instead of calling Alpha Vantage directly
-        const response = await axios.get(`/api/stock/price/${tradeInfo.symbol}`);
+        const response = await axios.get(`/api/stocks/price/${tradeInfo.symbol}`);
 
         if (!response.data || !response.data.valid) {
             throw new Error("Invalid stock data received");
