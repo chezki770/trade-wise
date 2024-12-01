@@ -18,7 +18,7 @@ class Landing extends Component {
                     </p>
                     
                     <div className="buttons-container">
-                        <Link to="/signup" className="landing-btn btn blue">
+                        <Link to="/register" className="landing-btn btn blue">
                             Sign Up
                         </Link>
                         <Link to="/login" className="landing-btn btn">
