@@ -116,32 +116,99 @@ router.get('/news/:symbol', checkApiKey, async (req, res) => {
       return res.status(400).json({ error: 'Stock symbol is required' });
     }
 
-    console.log(`Fetching company overview for symbol: ${symbol}`);
-    const response = await axios.get(
-      `${ALPHA_VANTAGE_BASE_URL}?function=OVERVIEW&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
-    );
+    // Fetch both company overview and news in parallel
+    const [overviewResponse, newsResponse] = await Promise.all([
+      axios.get(
+        `${ALPHA_VANTAGE_BASE_URL}?function=OVERVIEW&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
+      ),
+      axios.get(
+        `${ALPHA_VANTAGE_BASE_URL}?function=NEWS_SENTIMENT&tickers=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
+      )
+    ]);
 
-    if (!response.data || !response.data.Description) {
-      return res.status(404).json({ error: 'No company information found for this symbol' });
+    const news = [];
+
+    // Add company overview if available
+    if (overviewResponse.data && overviewResponse.data.Description) {
+      news.push({
+        type: 'overview',
+        title: `About ${overviewResponse.data.Name} (${symbol})`,
+        summary: overviewResponse.data.Description,
+        sector: overviewResponse.data.Sector,
+        industry: overviewResponse.data.Industry,
+        marketCap: overviewResponse.data.MarketCapitalization,
+        peRatio: overviewResponse.data.PERatio,
+        dividendYield: overviewResponse.data.DividendYield,
+        date: new Date().toLocaleDateString(),
+      });
     }
 
-    const news = [{
-      title: `About ${response.data.Name} (${symbol})`,
-      summary: response.data.Description,
-      sector: response.data.Sector,
-      industry: response.data.Industry,
-      marketCap: response.data.MarketCapitalization,
-      peRatio: response.data.PERatio,
-      dividendYield: response.data.DividendYield,
-      date: new Date().toLocaleDateString(),
-    }];
+    // Add news articles if available
+    if (newsResponse.data && newsResponse.data.feed) {
+      const newsArticles = newsResponse.data.feed
+        .slice(0, 5) // Get top 5 news articles
+        .map(article => ({
+          type: 'news',
+          title: article.title,
+          summary: article.summary,
+          url: article.url,
+          source: article.source,
+          date: new Date(article.time_published).toLocaleDateString(),
+          sentiment: article.overall_sentiment_label
+        }));
+      
+      news.push(...newsArticles);
+    }
+
+    if (news.length === 0) {
+      return res.status(404).json({ error: 'No information found for this symbol' });
+    }
 
     res.json(news);
   } catch (error) {
-    console.error('Error fetching company overview:', error.response?.data || error.message);
+    console.error('Error fetching news:', error.response?.data || error.message);
     res.status(500).json({ 
-      error: 'Error fetching company information',
+      error: 'Error fetching news',
       details: error.response?.data?.error || error.message
+    });
+  }
+});
+
+// @route GET api/stocks/history/:symbol
+// @desc Get stock price history
+// @access Public
+router.get('/history/:symbol', checkApiKey, async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    
+    if (!symbol) {
+      return res.status(400).json({ error: 'Stock symbol is required' });
+    }
+
+    console.log(`Fetching historical data for symbol: ${symbol}`);
+    const response = await axios.get(
+      `${ALPHA_VANTAGE_BASE_URL}?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
+    );
+
+    if (!response.data || !response.data['Time Series (Daily)']) {
+      return res.status(404).json({ error: 'No historical data found for this symbol' });
+    }
+
+    const timeSeriesData = response.data['Time Series (Daily)'];
+    const historicalData = Object.entries(timeSeriesData)
+      .slice(0, 30) // Get last 30 days
+      .map(([date, data]) => ({
+        date,
+        price: parseFloat(data['4. close'])
+      }))
+      .reverse(); // Show oldest to newest
+
+    res.json(historicalData);
+  } catch (error) {
+    console.error('Error fetching historical data:', error);
+    res.status(500).json({ 
+      error: 'Error fetching historical data',
+      details: error.message 
     });
   }
 });

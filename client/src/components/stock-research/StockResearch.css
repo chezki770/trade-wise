@@ -27,3 +27,95 @@
 strong {
   font-weight: bold;
 }
+
+.news-container {
+  margin-top: 20px;
+}
+
+.news-item {
+  padding: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.news-item:last-child {
+  border-bottom: none;
+}
+
+.news-item h6 {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.news-item .meta-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 10px 0;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.news-item .source {
+  font-weight: 500;
+}
+
+.news-item .sentiment {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  text-transform: capitalize;
+}
+
+.sentiment.bullish {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.sentiment.bearish {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.sentiment.neutral {
+  background-color: #f5f5f5;
+  color: #616161;
+}
+
+.news-item .summary {
+  margin: 10px 0;
+  line-height: 1.6;
+}
+
+.news-item .actions {
+  margin-top: 15px;
+}
+
+.company-info {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.company-info .metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.company-info .metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.company-info .metric-label {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.company-info .metric-value {
+  font-weight: 500;
+  margin-top: 5px;
+}
