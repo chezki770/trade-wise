@@ -60,4 +60,4 @@ coverage/
 *.map
 
 # Ignore the server folder
-/server
+# /server
