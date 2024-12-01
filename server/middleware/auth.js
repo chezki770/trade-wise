@@ -3,12 +3,15 @@ const config = require('../config/keys');
 
 module.exports = function(req, res, next) {
   // Get token from header
-  const token = req.header('Authorization');
+  const authHeader = req.header('Authorization');
 
   // Check if no token
-  if (!token) {
+  if (!authHeader) {
     return res.status(401).json({ error: 'No token, authorization denied' });
   }
+
+  // Extract token from Bearer format
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
 
   try {
     // Verify token

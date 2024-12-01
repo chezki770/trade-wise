@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const User = require('../models/User');
 const Trade = require('../models/Trade');
 const { Parser } = require('json2csv');
+const mongoose = require('mongoose');
 
 // Helper function to parse date range
 const getDateRange = (req) => {
@@ -213,5 +214,85 @@ router.get('/export', auth, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// @route   GET api/analytics/recent-trades
+// @desc    Get recent trading activity
+// @access  Admin only
+router.get('/recent-trades', auth, async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Access denied. Admin only.' });
+    }
+
+    const trades = await Trade.find()
+      .sort({ executedAt: -1 })
+      .limit(20)
+      .populate('user', 'email')
+      .populate('stock', 'symbol name');
+
+    res.json(trades);
+  } catch (err) {
+    console.error('Error in recent-trades:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// @route   GET api/analytics/system-metrics
+// @desc    Get system performance metrics
+// @access  Admin only
+router.get('/system-metrics', auth, async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Access denied. Admin only.' });
+    }
+
+    // Get today's API calls
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const apiCalls = await Trade.countDocuments({
+      createdAt: { $gte: startOfDay }
+    });
+
+    // Get system status based on various metrics
+    const serverStatus = await getServerStatus();
+
+    res.json({
+      serverStatus: serverStatus,
+      apiCallsToday: apiCalls,
+      apiCallsLimit: process.env.STOCK_API_REQUESTS_PER_DAY || 500,
+      lastUpdated: new Date()
+    });
+  } catch (err) {
+    console.error('Error in system-metrics:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Helper function to determine server status
+async function getServerStatus() {
+  try {
+    // Check database connection
+    const dbStatus = await mongoose.connection.db.admin().ping();
+    if (!dbStatus) return 'error';
+
+    // Check API rate limits
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const apiCalls = await Trade.countDocuments({
+      createdAt: { $gte: startOfDay }
+    });
+    
+    const apiLimit = process.env.STOCK_API_REQUESTS_PER_DAY || 500;
+    
+    if (apiCalls >= apiLimit) return 'warning';
+    if (apiCalls >= apiLimit * 0.8) return 'warning';
+    
+    return 'operational';
+  } catch (err) {
+    console.error('Error checking server status:', err);
+    return 'error';
+  }
+}
 
 module.exports = router;

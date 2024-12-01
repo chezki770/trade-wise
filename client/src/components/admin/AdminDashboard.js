@@ -86,7 +86,9 @@ class AdminDashboard extends Component {
     const token = localStorage.getItem("jwtToken");
     axios
       .get("/api/analytics/user-stats", {
-        headers: { Authorization: token }
+        headers: { 
+          Authorization: token
+        }
       })
       .then(res => {
         this.setState({ statistics: res.data });
@@ -100,7 +102,9 @@ class AdminDashboard extends Component {
     const token = localStorage.getItem("jwtToken");
     axios
       .get("/api/analytics/recent-trades", {
-        headers: { Authorization: token }
+        headers: {
+          Authorization: token
+        }
       })
       .then(res => {
         this.setState({ recentTrades: res.data });
@@ -114,7 +118,9 @@ class AdminDashboard extends Component {
     const token = localStorage.getItem("jwtToken");
     axios
       .get("/api/analytics/system-metrics", {
-        headers: { Authorization: token }
+        headers: {
+          Authorization: token
+        }
       })
       .then(res => {
         this.setState({ 
@@ -297,25 +303,25 @@ class AdminDashboard extends Component {
           <div className="stats-grid">
             <div className="stat-card">
               <h4>Users</h4>
-              <p>{statistics.totalUsers}</p>
-              <small>Active: {statistics.activeUsers}</small>
+              <p>{statistics?.totalUsers || 0}</p>
+              <small>Active: {statistics?.activeUsers || 0}</small>
             </div>
             <div className="stat-card">
               <h4>Trading Activity</h4>
-              <p>{statistics.totalTrades} trades</p>
-              <small>Volume: ${statistics.tradingVolume.toLocaleString()}</small>
+              <p>{statistics?.totalTrades || 0} trades</p>
+              <small>Volume: ${(statistics?.tradingVolume || 0).toLocaleString()}</small>
             </div>
             <div className="stat-card">
               <h4>API Usage</h4>
-              <p>{systemMetrics.apiCallsToday} / {systemMetrics.apiCallsLimit}</p>
+              <p>{systemMetrics?.apiCallsToday || 0} / {systemMetrics?.apiCallsLimit || 500}</p>
               <small>Calls Today</small>
             </div>
             <div className="stat-card">
               <h4>System Status</h4>
-              <p className={`status-${systemMetrics.serverStatus}`}>
-                {systemMetrics.serverStatus}
+              <p className={`status-${systemMetrics?.serverStatus || 'unknown'}`}>
+                {systemMetrics?.serverStatus || 'unknown'}
               </p>
-              <small>Last Updated: {systemMetrics.lastUpdated?.toLocaleTimeString()}</small>
+              <small>Last Updated: {systemMetrics?.lastUpdated ? systemMetrics.lastUpdated.toLocaleTimeString() : 'Never'}</small>
             </div>
           </div>
         </div>
