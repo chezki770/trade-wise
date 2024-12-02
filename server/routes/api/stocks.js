@@ -186,7 +186,8 @@ router.get('/news/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
           url: article.url,
           source: article.source,
           date: new Date(article.time_published).toLocaleDateString(),
-          sentiment: article.overall_sentiment_label
+          sentiment: article.overall_sentiment_label,
+          image_url: article.banner_image || article.source_image_url || null
         }));
       
       news.push(...newsArticles);
