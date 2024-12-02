@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const passport = require("passport");
+const auth = require('../../middleware/auth');
 
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHAVANTAGE_API_KEY;
 const ALPHA_VANTAGE_BASE_URL = process.env.ALPHAVANTAGE_BASE_URL;
@@ -20,13 +21,19 @@ const checkApiKey = (req, res, next) => {
 
 // Authentication middleware
 const authenticateJWT = (req, res, next) => {
+  console.log('Incoming request headers:', req.headers);
+  console.log('Authorization header:', req.headers.authorization);
+  
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
     if (err) {
+      console.error('Authentication error:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
     if (!user) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      console.error('Authentication failed:', info);
+      return res.status(401).json({ error: 'Unauthorized', details: info });
     }
+    console.log('Authentication successful for user:', user.email);
     req.user = user;
     next();
   })(req, res, next);
@@ -36,6 +43,9 @@ const authenticateJWT = (req, res, next) => {
 // @desc Get stock information
 // @access Private
 router.get('/info/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
+  console.log('Processing stock info request for symbol:', req.params.symbol);
+  console.log('User from token:', req.user);
+  
   try {
     const { symbol } = req.params;
     
@@ -66,12 +76,9 @@ router.get('/info/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
     };
 
     res.json(stockData);
-  } catch (error) {
-    console.error('Error fetching stock data:', error.response?.data || error.message);
-    res.status(500).json({ 
-      error: 'Error fetching stock data',
-      details: error.response?.data?.error || error.message
-    });
+  } catch (err) {
+    console.error('Error fetching stock info:', err);
+    res.status(500).json({ error: 'Server error fetching stock data' });
   }
 });
 
@@ -79,6 +86,9 @@ router.get('/info/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
 // @desc Get stock price information
 // @access Private
 router.get('/price/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
+  console.log('Processing stock price request for symbol:', req.params.symbol);
+  console.log('User from token:', req.user);
+  
   try {
     const { symbol } = req.params;
     
@@ -118,12 +128,9 @@ router.get('/price/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
     };
 
     res.json(stockData);
-  } catch (error) {
-    console.error('Error fetching stock data:', error);
-    res.status(500).json({ 
-      error: 'Error fetching stock data',
-      details: error.message 
-    });
+  } catch (err) {
+    console.error('Error fetching stock price:', err);
+    res.status(500).json({ error: 'Server error fetching stock data' });
   }
 });
 
@@ -131,6 +138,9 @@ router.get('/price/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
 // @desc Get stock news and overview
 // @access Private
 router.get('/news/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
+  console.log('Processing stock news request for symbol:', req.params.symbol);
+  console.log('User from token:', req.user);
+  
   try {
     const { symbol } = req.params;
 
@@ -187,12 +197,9 @@ router.get('/news/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
     }
 
     res.json(news);
-  } catch (error) {
-    console.error('Error fetching news:', error.response?.data || error.message);
-    res.status(500).json({ 
-      error: 'Error fetching news',
-      details: error.response?.data?.error || error.message
-    });
+  } catch (err) {
+    console.error('Error fetching stock news:', err);
+    res.status(500).json({ error: 'Server error fetching news data' });
   }
 });
 
@@ -200,6 +207,9 @@ router.get('/news/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
 // @desc Get stock price history
 // @access Private
 router.get('/history/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
+  console.log('Processing stock history request for symbol:', req.params.symbol);
+  console.log('User from token:', req.user);
+  
   try {
     const { symbol } = req.params;
     
@@ -226,12 +236,9 @@ router.get('/history/:symbol', authenticateJWT, checkApiKey, async (req, res) =>
       .reverse(); // Show oldest to newest
 
     res.json(historicalData);
-  } catch (error) {
-    console.error('Error fetching historical data:', error);
-    res.status(500).json({ 
-      error: 'Error fetching historical data',
-      details: error.message 
-    });
+  } catch (err) {
+    console.error('Error fetching stock history:', err);
+    res.status(500).json({ error: 'Server error fetching historical data' });
   }
 });
 

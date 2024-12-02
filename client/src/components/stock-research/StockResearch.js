@@ -20,22 +20,46 @@ const StockResearch = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Get the token from localStorage
+  const getAuthToken = () => {
+    const token = localStorage.getItem('jwtToken');
+    console.log('Current token:', token);
+    return token || '';
+  };
+
   const fetchStockData = async () => {
     if (!symbol) return;
     
     setLoading(true);
     setError('');
     try {
+      const token = getAuthToken();
+      console.log('Making API calls with token:', token);
+
+      const config = {
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      };
+      console.log('Request config:', config);
+
       const [stockResponse, newsResponse, historyResponse] = await Promise.all([
-        axios.get(`/api/stocks/info/${symbol}`),
-        axios.get(`/api/stocks/news/${symbol}`),
-        axios.get(`/api/stocks/history/${symbol}`)
+        axios.get(`/api/stocks/info/${symbol}`, config),
+        axios.get(`/api/stocks/news/${symbol}`, config),
+        axios.get(`/api/stocks/history/${symbol}`, config)
       ]);
       
       setStockData(stockResponse.data);
       setNews(newsResponse.data);
       setHistoricalData(historyResponse.data);
     } catch (err) {
+      console.error('API Error Details:', {
+        status: err.response?.status,
+        data: err.response?.data,
+        headers: err.response?.headers,
+        config: err.config
+      });
       setError('Failed to fetch stock data. Please try again.');
       console.error('Error fetching stock data:', err);
     }

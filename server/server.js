@@ -57,14 +57,6 @@ const apiUsageTracker = require("./middleware/apiUsageTracker");
 
 const app = express();
 
-// Enable CORS
-app.use(cors({
-    origin: 'http://localhost:3000',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-}));
-
 // Bodyparser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -107,6 +99,12 @@ app.use((req, res, next) => {
 
 // Use API usage tracker middleware for all routes
 app.use(apiUsageTracker());
+
+// Enable CORS for development
+app.use(cors({
+    origin: process.env.NODE_ENV === 'production' ? 'https://your-production-domain.com' : 'http://localhost:3000',
+    credentials: true
+}));
 
 // Routes
 app.use("/api/users", users);
