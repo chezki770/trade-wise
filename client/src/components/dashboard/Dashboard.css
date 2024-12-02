@@ -31,3 +31,24 @@
     padding: 8px;
     font-size: 16px;
 }
+
+.card-content.white-text {
+  height: 180px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+/* Ensure card maintains size on mobile */
+@media screen and (max-width: 600px) {
+  .card-content.white-text {
+    height: 180px;
+  }
+}
