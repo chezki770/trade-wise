@@ -99,8 +99,9 @@ router.get("/", async (req, res) => {
       url: item.url || "#",
       summary: item.summary || "No summary available",
       timePublished: item.time_published || "",
-      source: item.source || "Unknown",
-      sentiment: item.overall_sentiment_label || "Unknown"
+      source: item.source || "Unknown Source",
+      sentiment: item.overall_sentiment_label || null,
+      image_url: item.banner_image || item.source_image_url || null
     }));
 
     // Update cache

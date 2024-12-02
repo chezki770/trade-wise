@@ -230,28 +230,44 @@ const StockResearch = () => {
                           </div>
                         ) : (
                           // News Article
-                          <div key={index} className="news-item">
-                            <h6>{item.title}</h6>
-                            <div className="meta-info">
-                              <span className="source">{item.source}</span>
-                              <span>{item.date}</span>
-                              {item.sentiment && (
-                                <span className={`sentiment ${item.sentiment.toLowerCase()}`}>
-                                  {item.sentiment}
-                                </span>
+                          <div key={index} className={`news-item ${item.image_url ? 'has-image' : ''}`}>
+                            <div className="news-content">
+                              <h6>{item.title}</h6>
+                              <div className="meta-info">
+                                <span className="source">{item.source}</span>
+                                <span>{item.date}</span>
+                                {item.sentiment && (
+                                  <span className={`sentiment ${item.sentiment.toLowerCase()}`}>
+                                    {item.sentiment}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="summary">{item.summary}</p>
+                              {item.url && (
+                                <div className="actions">
+                                  <a
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn-small waves-effect waves-light"
+                                  >
+                                    Read Full Article
+                                  </a>
+                                </div>
                               )}
                             </div>
-                            <p className="summary">{item.summary}</p>
-                            {item.url && (
-                              <div className="actions">
-                                <a
-                                  href={item.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="btn-small waves-effect waves-light"
-                                >
-                                  Read Full Article
-                                </a>
+                            {item.image_url && (
+                              <div className="news-image-container">
+                                <img
+                                  src={item.image_url}
+                                  alt={item.title}
+                                  className="news-image"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = '/images/news-placeholder.jpg';
+                                    e.target.className = 'news-image fallback';
+                                  }}
+                                />
                               </div>
                             )}
                           </div>

@@ -102,6 +102,20 @@ const NewsPage = () => {
       <div className="news-grid">
         {news.map((article, index) => (
           <div key={index} className="news-card">
+            {article.image_url && (
+              <div className="news-image-container">
+                <img
+                  src={article.image_url}
+                  alt={article.title}
+                  className="news-image"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/images/news-placeholder.jpg';
+                    e.target.className = 'news-image fallback';
+                  }}
+                />
+              </div>
+            )}
             <div className="news-content">
               <div className="news-meta">
                 <span className="news-source">{article.source}</span>
@@ -115,12 +129,12 @@ const NewsPage = () => {
                 </a>
               </h3>
               <p className="news-summary">{article.summary}</p>
+              {article.sentiment && (
+                <div className={`sentiment-badge ${article.sentiment.toLowerCase()}`}>
+                  {article.sentiment}
+                </div>
+              )}
             </div>
-            {article.sentiment && (
-              <div className={`sentiment-badge ${article.sentiment.toLowerCase()}`}>
-                {article.sentiment}
-              </div>
-            )}
           </div>
         ))}
       </div>
