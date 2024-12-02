@@ -96,7 +96,7 @@ export const getAllUsers = () => dispatch => {
     axios
         .get("/api/users/all", {
             headers: {
-                Authorization: localStorage.getItem("jwtToken")
+                Authorization: `Bearer ${localStorage.getItem("jwtToken")}`
             }
         })
         .then(res => {
