@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { logoutUser } from "../../redux/actions/authActions";
+import logo from "../../assets/trade_wise_logo.webp";
 
 class Navbar extends Component {
   onLogoutClick = (e) => {
@@ -195,7 +196,7 @@ class Navbar extends Component {
                 paddingLeft: "16px",
               }}
             >
-              <i className="material-icons">monetization_on</i>
+              <img src={logo} alt="Trade Wise Logo" style={{ height: "40px", marginRight: "10px", verticalAlign: "middle" }} />
               Virtual Stock Trading
             </Link>
             <ul className="right hide-on-med-and-down">
