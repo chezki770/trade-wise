@@ -1,5 +1,6 @@
 import axios from "axios";
 import setAuthToken from "../../utils/setAuthToken";
+import { showSuccessToast, showErrorToast } from "../../utils/notifications";
 
 import {
     GET_ERRORS,
@@ -10,19 +11,6 @@ import {
 } from "./types";
 
 // Helper function to fetch stock info
-// const fetchStockInfo = async (symbol) => {
-//     try {
-//         const response = await axios.get(`/api/stock/price/${symbol}`);
-//         const stockInfo = response.data;
-        
-//         if (!stockInfo) throw new Error("Failed to retrieve stock data");
-        
-//         return stockInfo;
-//     } catch (err) {
-//         throw new Error(`Stock API Error: ${err.message}`);
-//     }
-// };
-
 const fetchStockInfo = async (symbol) => {
     try {
         console.log(`Fetching stock info for symbol: ${symbol}`);
@@ -64,6 +52,7 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
         const response = await axios.get(`/api/stocks/price/${tradeInfo.symbol}`);
 
         if (!response.data || !response.data.valid) {
+            showErrorToast("Invalid stock data received");
             throw new Error("Invalid stock data received");
         }
 
@@ -95,26 +84,42 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
             payload: updatedUserResponse.data
         });
 
+        showSuccessToast(`Successfully bought ${tradeInfo.quantity} shares of ${tradeInfo.symbol}`);
+
     } catch (err) {
         console.error("Error occurred in buyStock:", err);
         console.log("Error details:", err.message);
+        showErrorToast(err.response?.data?.message || "Failed to buy stock. Please try again.");
         
         dispatch({
             type: GET_ERRORS,
-            payload: err.response?.data || {
-                error: err.message || "Failed to complete stock purchase"
-            }
+            payload: err.response?.data || {}
         });
     }
 };
 
-
-
 // Sell Stock Action
 export const sellStock = (userData, tradeInfo) => async (dispatch) => {
     try {
-        // Validate and fetch stock info
-        const stockInfo = await fetchStockInfo(tradeInfo.symbol);
+        const token = localStorage.getItem("jwtToken");
+        if (token) {
+            setAuthToken(token);
+        }
+
+        const response = await axios.get(`/api/stocks/price/${tradeInfo.symbol}`);
+        
+        if (!response.data || !response.data.valid) {
+            showErrorToast("Invalid stock data received");
+            throw new Error("Invalid stock data received");
+        }
+
+        const stockInfo = {
+            "1. open": response.data.openPrice.toString(),
+            "2. high": response.data.currentPrice.toString(),
+            "3. low": response.data.currentPrice.toString(),
+            "4. close": response.data.currentPrice.toString(),
+            "5. volume": "0"
+        };
 
         const tradeData = {
             userId: userData.id,
@@ -123,11 +128,9 @@ export const sellStock = (userData, tradeInfo) => async (dispatch) => {
             stockInfo
         };
 
-        // Make the sell request
         const sellResponse = await axios.post("/api/users/sellStock", tradeData);
-        console.log("Sell request successful:", sellResponse.data);
         dispatch(returnSale(sellResponse.data));
-        
+
         // Update user data after successful sale
         const updatedUserResponse = await axios.get("/api/users/current");
         dispatch({
@@ -135,10 +138,14 @@ export const sellStock = (userData, tradeInfo) => async (dispatch) => {
             payload: updatedUserResponse.data
         });
 
+        showSuccessToast(`Successfully sold ${tradeInfo.quantity} shares of ${tradeInfo.symbol}`);
+
     } catch (err) {
+        console.error(err);
+        showErrorToast(err.response?.data?.message || "Failed to sell stock. Please try again.");
         dispatch({
             type: GET_ERRORS,
-            payload: err.message || "An error occurred while selling the stock"
+            payload: err.response?.data || {}
         });
     }
 };

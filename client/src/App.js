@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Switch } from "react-router-dom";
 import jwt_decode from "jwt-decode";
 import setAuthToken from "./utils/setAuthToken";
 import { setCurrentUser, logoutUser } from "./redux/actions/authActions";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import "./App.css";
 import { Provider } from "react-redux";
@@ -52,6 +54,7 @@ const App = () => {
       <BrowserRouter>
         <div className="App">
           <Navbar />
+          <ToastContainer />
           <Switch>
             <Route exact path="/" component={Landing} />
             <Route exact path="/register" component={Register} />
