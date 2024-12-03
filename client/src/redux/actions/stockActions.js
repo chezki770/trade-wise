@@ -1,6 +1,6 @@
 import axios from "axios";
 import setAuthToken from "../../utils/setAuthToken";
-import { showSuccessToast, showErrorToast } from "../../utils/notifications";
+import { showSuccessToast, showErrorToast, showDetailedErrorToast } from "../../utils/notifications";
 
 import {
     GET_ERRORS,
@@ -52,7 +52,10 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
         const response = await axios.get(`/api/stocks/price/${tradeInfo.symbol}`);
 
         if (!response.data || !response.data.valid) {
-            showErrorToast("Invalid stock data received");
+            showDetailedErrorToast(
+                "Unable to fetch stock data at this time",
+                `Invalid response for symbol: ${tradeInfo.symbol}`
+            );
             throw new Error("Invalid stock data received");
         }
 
@@ -89,11 +92,47 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
     } catch (err) {
         console.error("Error occurred in buyStock:", err);
         console.log("Error details:", err.message);
-        showErrorToast(err.response?.data?.message || "Failed to buy stock. Please try again.");
+        
+        let errorMessage = "Failed to buy stock. ";
+        let technicalDetails = null;
+        
+        if (err.response) {
+            // Server responded with an error
+            if (err.response.status === 400) {
+                errorMessage += "Invalid request parameters.";
+                technicalDetails = err.response.data.message;
+            } else if (err.response.status === 401) {
+                errorMessage += "Authentication error. Please log in again.";
+                technicalDetails = "Token expired or invalid";
+            } else if (err.response.status === 403) {
+                errorMessage += "You don't have permission to perform this action.";
+                technicalDetails = "Insufficient permissions";
+            } else if (err.response.status === 404) {
+                errorMessage += "Stock or resource not found.";
+                technicalDetails = `Resource not found: ${err.response.data.message || 'Unknown'}`;
+            } else if (err.response.status === 429) {
+                errorMessage += "Too many requests. Please try again later.";
+                technicalDetails = "Rate limit exceeded";
+            } else if (err.response.status >= 500) {
+                errorMessage += "Server error. Please try again later.";
+                technicalDetails = `Server error: ${err.response.status}`;
+            } else {
+                errorMessage += err.response.data.message || "An unexpected error occurred.";
+                technicalDetails = `Status: ${err.response.status}`;
+            }
+        } else if (err.request) {
+            errorMessage += "No response from server. Please check your internet connection.";
+            technicalDetails = "Network request failed";
+        } else {
+            errorMessage += err.message || "An unexpected error occurred.";
+            technicalDetails = err.stack;
+        }
+
+        showDetailedErrorToast(errorMessage, technicalDetails);
         
         dispatch({
             type: GET_ERRORS,
-            payload: err.response?.data || {}
+            payload: err.response?.data || { message: errorMessage, technicalDetails }
         });
     }
 };
@@ -109,7 +148,10 @@ export const sellStock = (userData, tradeInfo) => async (dispatch) => {
         const response = await axios.get(`/api/stocks/price/${tradeInfo.symbol}`);
         
         if (!response.data || !response.data.valid) {
-            showErrorToast("Invalid stock data received");
+            showDetailedErrorToast(
+                "Unable to fetch stock data at this time",
+                `Invalid response for symbol: ${tradeInfo.symbol}`
+            );
             throw new Error("Invalid stock data received");
         }
 
@@ -142,10 +184,46 @@ export const sellStock = (userData, tradeInfo) => async (dispatch) => {
 
     } catch (err) {
         console.error(err);
-        showErrorToast(err.response?.data?.message || "Failed to sell stock. Please try again.");
+        let errorMessage = "Failed to sell stock. ";
+        let technicalDetails = null;
+        
+        if (err.response) {
+            // Server responded with an error
+            if (err.response.status === 400) {
+                errorMessage += "Invalid request parameters.";
+                technicalDetails = err.response.data.message;
+            } else if (err.response.status === 401) {
+                errorMessage += "Authentication error. Please log in again.";
+                technicalDetails = "Token expired or invalid";
+            } else if (err.response.status === 403) {
+                errorMessage += "You don't have permission to perform this action.";
+                technicalDetails = "Insufficient permissions";
+            } else if (err.response.status === 404) {
+                errorMessage += "Stock or resource not found.";
+                technicalDetails = `Resource not found: ${err.response.data.message || 'Unknown'}`;
+            } else if (err.response.status === 429) {
+                errorMessage += "Too many requests. Please try again later.";
+                technicalDetails = "Rate limit exceeded";
+            } else if (err.response.status >= 500) {
+                errorMessage += "Server error. Please try again later.";
+                technicalDetails = `Server error: ${err.response.status}`;
+            } else {
+                errorMessage += err.response.data.message || "An unexpected error occurred.";
+                technicalDetails = `Status: ${err.response.status}`;
+            }
+        } else if (err.request) {
+            errorMessage += "No response from server. Please check your internet connection.";
+            technicalDetails = "Network request failed";
+        } else {
+            errorMessage += err.message || "An unexpected error occurred.";
+            technicalDetails = err.stack;
+        }
+
+        showDetailedErrorToast(errorMessage, technicalDetails);
+        
         dispatch({
             type: GET_ERRORS,
-            payload: err.response?.data || {}
+            payload: err.response?.data || { message: errorMessage, technicalDetails }
         });
     }
 };
@@ -157,9 +235,46 @@ export const updateStocks = (userData) => async (dispatch) => {
         const response = await axios.post("/api/users/updateStocks", data);
         dispatch(returnUpdate(response.data));
     } catch (err) {
+        let errorMessage = "Failed to update stocks. ";
+        let technicalDetails = null;
+        
+        if (err.response) {
+            // Server responded with an error
+            if (err.response.status === 400) {
+                errorMessage += "Invalid request parameters.";
+                technicalDetails = err.response.data.message;
+            } else if (err.response.status === 401) {
+                errorMessage += "Authentication error. Please log in again.";
+                technicalDetails = "Token expired or invalid";
+            } else if (err.response.status === 403) {
+                errorMessage += "You don't have permission to perform this action.";
+                technicalDetails = "Insufficient permissions";
+            } else if (err.response.status === 404) {
+                errorMessage += "Stock or resource not found.";
+                technicalDetails = `Resource not found: ${err.response.data.message || 'Unknown'}`;
+            } else if (err.response.status === 429) {
+                errorMessage += "Too many requests. Please try again later.";
+                technicalDetails = "Rate limit exceeded";
+            } else if (err.response.status >= 500) {
+                errorMessage += "Server error. Please try again later.";
+                technicalDetails = `Server error: ${err.response.status}`;
+            } else {
+                errorMessage += err.response.data.message || "An unexpected error occurred.";
+                technicalDetails = `Status: ${err.response.status}`;
+            }
+        } else if (err.request) {
+            errorMessage += "No response from server. Please check your internet connection.";
+            technicalDetails = "Network request failed";
+        } else {
+            errorMessage += err.message || "An unexpected error occurred.";
+            technicalDetails = err.stack;
+        }
+
+        showDetailedErrorToast(errorMessage, technicalDetails);
+        
         dispatch({
             type: GET_ERRORS,
-            payload: err.message || "An error occurred while updating stocks"
+            payload: err.response?.data || { message: errorMessage, technicalDetails }
         });
     }
 };

@@ -23,3 +23,24 @@ export const showErrorToast = (message) => {
 export const showInfoToast = (message) => {
     toast.info(message, toastConfig);
 };
+
+export const showDetailedErrorToast = (message, technicalDetails = null) => {
+    const config = {
+        ...toastConfig,
+        autoClose: 5000, // Give users more time to read detailed errors
+    };
+    
+    if (technicalDetails && process.env.NODE_ENV === 'development') {
+        toast.error(
+            <div>
+                <div>{message}</div>
+                <div style={{ fontSize: '0.8em', marginTop: '8px', color: '#ff9999' }}>
+                    Technical details: {technicalDetails}
+                </div>
+            </div>,
+            config
+        );
+    } else {
+        toast.error(message, config);
+    }
+};
