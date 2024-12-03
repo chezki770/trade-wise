@@ -56,30 +56,27 @@ class AdminDashboard extends Component {
     }
   }
 
-  fetchUsers = () => {
-    const token = localStorage.getItem("jwtToken");
-    
-    axios
-      .get("/api/users/all", {
-        headers: {
+  fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const response = await axios.get("/api/users", {
+        headers: { 
           Authorization: token
         }
-      })
-      .then(res => {
-        console.log("Users data:", res.data);
-        this.setState({
-          users: res.data,
-          filteredUsers: res.data,
-          loading: false
-        });
-      })
-      .catch(err => {
-        console.error("Error fetching users:", err.response || err);
-        this.setState({
-          error: err.response?.data?.error || "Error fetching users",
-          loading: false
-        });
       });
+      
+      this.setState({
+        users: response.data,
+        filteredUsers: response.data,
+        loading: false,
+        error: null
+      });
+    } catch (err) {
+      this.setState({
+        loading: false,
+        error: "Failed to fetch users"
+      });
+    }
   };
 
   fetchStatistics = () => {
@@ -445,6 +442,9 @@ class AdminDashboard extends Component {
               filteredUsers.map(user => (
                 <div className="col s12 m6" key={user._id}>
                   <div className="card">
+                    {/* <div className="card-image">
+                      <img src={user.image} alt={user.name} style={{ height: '200px', objectFit: 'cover' }} />
+                    </div> */}
                     <div className="card-content">
                       <span className="card-title">{user.name}</span>
                       <p className="grey-text">{user.email}</p>

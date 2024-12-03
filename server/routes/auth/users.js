@@ -135,6 +135,27 @@ router.post("/login", async (req, res) => {
     }
 });
 
+// @route GET api/users
+// @desc Get all users (admin only)
+// @access Private/Admin
+router.get("/", passport.authenticate("jwt", { session: false }), async (req, res) => {
+    try {
+        // Check if user is admin
+        if (!req.user.isAdmin) {
+            return res.status(403).json({ error: "Access denied. Admin only." });
+        }
+
+        const users = await User.find()
+            .select("-password") // Exclude password field
+            .sort({ date: -1 }); // Sort by date, newest first
+
+        res.json(users);
+    } catch (err) {
+        console.error("Error fetching users:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
 // @route GET api/users/all
 // @desc Get all users (admin only)
 // @access Private
