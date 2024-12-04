@@ -260,17 +260,32 @@ router.post("/stockRequest", passport.authenticate("jwt", { session: false }), a
 // @access Private
 router.post("/buyStock", passport.authenticate("jwt", { session: false }), async (req, res) => {
     try {
+        console.log("Buy stock request body:", req.body);
         const { userId, symbol, quantity, stockInfo } = req.body;
+
+        // Validate input
+        if (!userId || !symbol || !quantity || !stockInfo) {
+            console.error("Missing required fields:", { userId, symbol, quantity, stockInfo });
+            return res.status(400).json({ error: "Missing required fields" });
+        }
 
         const user = await User.findById(userId);
         if (!user) {
+            console.error("User not found:", userId);
             return res.status(404).json({ error: "User not found" });
         }
 
-        const currentPrice = (Number(stockInfo["2. high"]) + Number(stockInfo["3. low"])) / 2;
+        // Validate stock info
+        if (!stockInfo.currentPrice || isNaN(stockInfo.currentPrice)) {
+            console.error("Invalid stock price:", stockInfo);
+            return res.status(400).json({ error: "Invalid stock price" });
+        }
+
+        const currentPrice = Number(stockInfo.currentPrice);
         const totalCost = currentPrice * quantity;
 
         if (user.balance < totalCost) {
+            console.error("Insufficient funds:", { balance: user.balance, cost: totalCost });
             return res.status(400).json({ error: "Insufficient funds" });
         }
 
@@ -287,14 +302,14 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
                 symbol,
                 quantity: newQuantity,
                 unit_price: newAveragePrice,
-                open_price: Number(stockInfo["1. open"])
+                open_price: Number(stockInfo.openPrice)
             };
         } else {
             user.ownedStocks.push({
                 symbol,
                 quantity: Number(quantity),
                 unit_price: currentPrice,
-                open_price: Number(stockInfo["1. open"])
+                open_price: Number(stockInfo.openPrice)
             });
         }
 
@@ -306,6 +321,7 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
             date: new Date()
         });
 
+        console.log("Saving updated user data:", user);
         await user.save();
 
         res.json({

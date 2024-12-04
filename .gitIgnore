@@ -2,20 +2,10 @@
 /node_modules
 # Node.js dependencies
 node_modules/
-node_modules/*/
-node_modules/*/*/
-node_modules/*/*/*/
-node_modules/*/*/*/*/
-node_modules/*/*/*/*/*/
-node_modules/*/*/*/*/*/*/
-node_modules/*/*/*/*/*/*/*/
-node_modules/*/*/*/*/*/*/*/*/
-node_modules/*/*/*/*/*/*/*/*/*
-node_modules/*/*/*/*/*/*/*/*/*/*
-node_modules/*/*/*/*/*/*/*/*/*/*/*
 npm-debug.log
 yarn-error.log
 .pnpm-debug.log
+package-lock.json
 yarn.lock
 
 # Environment variables
@@ -71,27 +61,3 @@ coverage/
 
 # Ignore the server folder
 # /server
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-.env
-.venv
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/

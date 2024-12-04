@@ -10,12 +10,11 @@ const VideoCard = ({ title, description, videoId }) => (
       <iframe
         width="100%"
         height="100%"
-        src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
+        src={`https://www.youtube.com/embed/${videoId}`}
         title={title}
         frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
-        loading="lazy"
       ></iframe>
     </div>
     <div className="video-info">
@@ -52,60 +51,60 @@ const Learn = () => {
 
   const stockMarketBasics = [
     {
-      title: "Stock Market For Beginners 2024",
-      description: "A comprehensive guide to understanding the stock market basics in 2024.",
-      videoId: "giJ66HtR4Yw",
+      title: "Stock Market for Beginners",
+      description: "A comprehensive guide to understanding the stock market basics.",
+      videoId: "Xn7KWR9EOGQ",
     },
     {
-      title: "Understanding Stock Market Terms",
+      title: "How The Stock Market Works",
       description: "Learn essential stock market terminology and concepts.",
-      videoId: "ZwC3Ki4ccYo",
+      videoId: "ZCFkWDdmXG8",
     },
     {
-      title: "Stock Market Basics for Beginners",
-      description: "Master the fundamentals of stock market investing.",
-      videoId: "dD_NmI6dZGs",
+      title: "Stock Market Fundamentals",
+      description: "Understanding the fundamentals of stock market investing.",
+      videoId: "qhHOmZVAqBE",
     },
     {
-      title: "Stock Market for Beginners Guide",
+      title: "Getting Started with Stocks",
       description: "Step-by-step guide for new investors in the stock market.",
-      videoId: "xh-RXqNbw8Y",
+      videoId: "7SxPS1Zy9-Y",
     },
   ];
 
   const fullTradingCourses = [
     {
-      title: "How to Start Investing",
-      description: "Complete guide on how to start your investment journey.",
-      videoId: "bNzDW4_y39E",
+      title: "Technical Analysis Basics",
+      description: "Complete guide to technical analysis and chart patterns.",
+      videoId: "eynxyoKgpng",
     },
     {
-      title: "Professional Trading Course",
-      description: "Learn professional trading strategies and techniques.",
-      videoId: "mhwDUXV8G_I",
+      title: "Advanced Trading Strategies",
+      description: "Learn advanced trading strategies and techniques.",
+      videoId: "CAHAl3kN4EE",
     },
     {
-      title: "Complete Trading Course",
-      description: "Master trading with this comprehensive course.",
-      videoId: "TzB5IVBNxGk",
+      title: "Trading Psychology Essentials",
+      description: "Master the psychology of trading and investing.",
+      videoId: "WY1wV_NIRtw",
     },
   ];
 
   const spSection = [
     {
-      title: "S&P 500 Explained",
+      title: "Understanding the S&P 500",
       description: "Understanding the S&P 500 index and its importance.",
-      videoId: "LxkZltGBRjs",
-    },
-    {
-      title: "How to Invest in S&P 500",
-      description: "Learn the best strategies for investing in the S&P 500.",
-      videoId: "KEiQF7wM8qk",
+      videoId: "p7HKvqRI_Bo",
     },
     {
       title: "S&P 500 Investment Strategies",
-      description: "Advanced strategies for S&P 500 investing.",
-      videoId: "u1M4ZBVqmkY",
+      description: "Learn the best strategies for investing in the S&P 500.",
+      videoId: "HYsqKUQ6yKk",
+    },
+    {
+      title: "Mastering S&P 500 Investing",
+      description: "Complete guide to investing in S&P 500.",
+      videoId: "fwe-PjrX23o",
     },
   ];
 

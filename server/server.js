@@ -149,6 +149,9 @@ if (process.env.NODE_ENV === "production") {
 
 // Function to start the server
 const startServer = (port = process.env.PORT || 8080) => {
+    // Convert port to number
+    port = parseInt(port);
+    
     const server = app.listen(port, () => {
         console.log(`Server is running on port ${port}`);
         console.log('Environment check on server start:', {

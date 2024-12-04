@@ -1,54 +1,227 @@
-.browser-default {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    padding: 10px 35px 10px 12px;
-    font-size: 16px;
-    color: #333;
-    width: 100%;
-    cursor: pointer;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px top 50%;
-    background-size: 12px auto;
-    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+/* Summary Cards */
+.summary-section {
+  margin-bottom: 40px;
 }
 
-.browser-default:hover {
-    border-color: #bdbdbd;
-}
-
-.browser-default:focus {
-    outline: none;
-    border-color: #26a69a;
-    box-shadow: 0 0 0 2px rgba(38, 166, 154, 0.2);
-}
-
-.browser-default option {
-    padding: 8px;
-    font-size: 16px;
-}
-
-.card-content.white-text {
-  height: 180px;
+.summary-card {
+  border-radius: 16px;
   padding: 24px;
+  transition: all 0.3s ease;
+  height: 100%;
+  min-height: 180px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  box-sizing: border-box;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
 }
 
-.card-title {
-  font-size: 1.5rem;
-  margin-bottom: 15px;
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
 }
 
-/* Ensure card maintains size on mobile */
+.summary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+.account-balance-card {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.portfolio-value-card {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.summary-card .card-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-card h4 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.daily-change {
+  margin-top: 16px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+}
+
+.daily-change.positive {
+  color: #ecfdf5;
+}
+
+.daily-change.negative {
+  color: #fee2e2;
+}
+
+.daily-change-icon {
+  font-size: 20px;
+}
+
+/* Portfolio Table Section */
+.portfolio-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.portfolio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.portfolio-header h4 {
+  margin: 0;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+table.highlight {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.highlight thead {
+  background: #f8fafc;
+}
+
+table.highlight th {
+  color: #64748b;
+  font-weight: 600;
+  padding: 16px;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+table.highlight th:hover {
+  color: #1e293b;
+  background: #f1f5f9;
+}
+
+table.highlight td {
+  padding: 16px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Button Styles */
+.btn {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 500;
+  margin: 0 5px;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn.red {
+  background-color: #ef4444;
+}
+
+.btn.green {
+  background-color: #10b981;
+}
+
+.btn.light-green {
+  background-color: #34d399;
+}
+
+/* Welcome Message Styles */
+.welcome-header {
+  background: linear-gradient(135deg, #3b82f6, #26a69a);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 40px 10px 20px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: fadeInSlideDown 0.8s forwards;
+  width: calc(100% - 20px);
+}
+
+@keyframes fadeInSlideDown {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-header h3 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.welcome-header p {
+  margin: 10px 0 0;
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Empty State */
+.portfolio-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+}
+
+.portfolio-empty-state p {
+  margin: 10px 0 20px;
+  font-size: 1.1rem;
+}
+
+/* Responsive Design */
 @media screen and (max-width: 600px) {
-  .card-content.white-text {
-    height: 180px;
+  .portfolio-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  table .btn {
+    padding: 0 10px;
+    margin: 2px;
+  }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 600px) {
+  .summary-card {
+    min-height: 160px;
+    margin-bottom: 20px;
   }
 }

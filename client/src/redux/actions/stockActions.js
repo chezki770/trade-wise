@@ -60,26 +60,25 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
         }
 
         console.log("Fetching stock data...");
-        // Use our backend endpoint instead of calling Alpha Vantage directly
         const response = await axios.get(`/api/stocks/price/${tradeInfo.symbol}`);
+        console.log("Stock price response:", response.data);
 
         if (!response.data || !response.data.valid) {
-            throw new Error("Invalid stock data received");
+            console.error("Invalid stock data:", response.data);
+            throw new Error(response.data?.error || "Invalid stock data received");
         }
-
-        const stockInfo = {
-            "1. open": response.data.openPrice.toString(),
-            "2. high": response.data.currentPrice.toString(),
-            "3. low": response.data.currentPrice.toString(),
-            "4. close": response.data.currentPrice.toString(),
-            "5. volume": "0"
-        };
 
         const tradeData = {
             userId: userData.id,
-            symbol: tradeInfo.symbol,
-            quantity: tradeInfo.quantity.toString(),
-            stockInfo
+            symbol: tradeInfo.symbol.toUpperCase(),
+            quantity: parseInt(tradeInfo.quantity),
+            stockInfo: {
+                currentPrice: response.data.currentPrice,
+                openPrice: response.data.openPrice,
+                highPrice: response.data.highPrice,
+                lowPrice: response.data.lowPrice,
+                volume: response.data.volume
+            }
         };
 
         console.log("Sending buy request with trade data:", tradeData);
@@ -97,13 +96,10 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
 
     } catch (err) {
         console.error("Error occurred in buyStock:", err);
-        console.log("Error details:", err.message);
-        
+        const errorMessage = err.response?.data?.error || err.message || "Failed to buy stock";
         dispatch({
             type: GET_ERRORS,
-            payload: err.response?.data || {
-                error: err.message || "Failed to complete stock purchase"
-            }
+            payload: { error: errorMessage }
         });
     }
 };

@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const passport = require("passport");
-const auth = require('../../middleware/auth');
 
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHAVANTAGE_API_KEY;
 const ALPHA_VANTAGE_BASE_URL = process.env.ALPHAVANTAGE_BASE_URL;
@@ -21,9 +20,12 @@ const checkApiKey = (req, res, next) => {
 
 // Authentication middleware
 const authenticateJWT = (req, res, next) => {
-  console.log('Incoming request headers:', req.headers);
-  console.log('Authorization header:', req.headers.authorization);
+  const authHeader = req.headers.authorization;
   
+  if (!authHeader) {
+    return res.status(401).json({ error: 'No authorization header' });
+  }
+
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
     if (err) {
       console.error('Authentication error:', err);
@@ -33,61 +35,17 @@ const authenticateJWT = (req, res, next) => {
       console.error('Authentication failed:', info);
       return res.status(401).json({ error: 'Unauthorized', details: info });
     }
-    console.log('Authentication successful for user:', user.email);
     req.user = user;
     next();
   })(req, res, next);
 };
 
-// @route GET api/stocks/info/:symbol
-// @desc Get stock information
-// @access Private
-router.get('/info/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
-  console.log('Processing stock info request for symbol:', req.params.symbol);
-  console.log('User from token:', req.user);
-  
-  try {
-    const { symbol } = req.params;
-    
-    if (!symbol) {
-      return res.status(400).json({ error: 'Stock symbol is required' });
-    }
-
-    console.log(`Fetching stock data for symbol: ${symbol}`);
-    const response = await axios.get(
-      `${ALPHA_VANTAGE_BASE_URL}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
-    );
-
-    console.log('Alpha Vantage API response:', response.data);
-
-    if (!response.data || !response.data['Global Quote']) {
-      return res.status(404).json({ error: 'No data found for this symbol' });
-    }
-
-    const quote = response.data['Global Quote'];
-    const stockData = {
-      symbol,
-      price: parseFloat(quote['05. price']),
-      change: parseFloat(quote['09. change']),
-      changePercent: parseFloat(quote['10. change percent'].replace('%', '')),
-      volume: parseInt(quote['06. volume']),
-      high: parseFloat(quote['03. high']),
-      low: parseFloat(quote['04. low']),
-    };
-
-    res.json(stockData);
-  } catch (err) {
-    console.error('Error fetching stock info:', err);
-    res.status(500).json({ error: 'Server error fetching stock data' });
-  }
-});
-
-// @route GET api/stock/price/:symbol
+// @route GET api/stocks/price/:symbol
 // @desc Get stock price information
 // @access Private
 router.get('/price/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
   console.log('Processing stock price request for symbol:', req.params.symbol);
-  console.log('User from token:', req.user);
+  console.log('User:', req.user.name); // Log the authenticated user
   
   try {
     const { symbol } = req.params;
@@ -98,7 +56,7 @@ router.get('/price/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
 
     console.log('Fetching stock data for symbol:', symbol);
     
-    const response = await axios.get(`${ALPHA_VANTAGE_BASE_URL}`, {
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
       params: {
         function: 'GLOBAL_QUOTE',
         symbol: symbol,
@@ -106,140 +64,28 @@ router.get('/price/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
       }
     });
 
-    console.log('Alpha Vantage API response:', response.data);
-
     const quote = response.data['Global Quote'];
     
-    // Check if the quote is empty (invalid symbol)
-    if (!quote || Object.keys(quote).length === 0) {
-      return res.status(404).json({ error: 'Invalid stock symbol' });
-    }
-
-    const stockData = {
-      valid: true,
-      symbol: quote['01. symbol'],
-      currentPrice: parseFloat(quote['05. price']),
-      openPrice: parseFloat(quote['02. open']),
-      high: parseFloat(quote['03. high']),
-      low: parseFloat(quote['04. low']),
-      volume: parseInt(quote['06. volume']),
-      change: parseFloat(quote['09. change']),
-      changePercent: parseFloat(quote['10. change percent'].replace('%', '')),
-    };
-
-    res.json(stockData);
-  } catch (err) {
-    console.error('Error fetching stock price:', err);
-    res.status(500).json({ error: 'Server error fetching stock data' });
-  }
-});
-
-// @route GET api/stocks/news/:symbol
-// @desc Get stock news and overview
-// @access Private
-router.get('/news/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
-  console.log('Processing stock news request for symbol:', req.params.symbol);
-  console.log('User from token:', req.user);
-  
-  try {
-    const { symbol } = req.params;
-
-    if (!symbol) {
-      return res.status(400).json({ error: 'Stock symbol is required' });
-    }
-
-    // Fetch both company overview and news in parallel
-    const [overviewResponse, newsResponse] = await Promise.all([
-      axios.get(
-        `${ALPHA_VANTAGE_BASE_URL}?function=OVERVIEW&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
-      ),
-      axios.get(
-        `${ALPHA_VANTAGE_BASE_URL}?function=NEWS_SENTIMENT&tickers=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
-      )
-    ]);
-
-    const news = [];
-
-    // Add company overview if available
-    if (overviewResponse.data && overviewResponse.data.Description) {
-      news.push({
-        type: 'overview',
-        title: `About ${overviewResponse.data.Name} (${symbol})`,
-        summary: overviewResponse.data.Description,
-        sector: overviewResponse.data.Sector,
-        industry: overviewResponse.data.Industry,
-        marketCap: overviewResponse.data.MarketCapitalization,
-        peRatio: overviewResponse.data.PERatio,
-        dividendYield: overviewResponse.data.DividendYield,
-        date: new Date().toLocaleDateString(),
+    // Check if we have valid price data
+    if (quote && quote['05. price']) {
+      res.json({
+        valid: true,
+        currentPrice: parseFloat(quote['05. price']),
+        change: parseFloat(quote['09. change'] || 0),
+        changePercent: parseFloat((quote['10. change percent'] || '0%').replace('%', ''))
+      });
+    } else {
+      res.json({ 
+        valid: false,
+        error: 'Invalid stock symbol'
       });
     }
-
-    // Add news articles if available
-    if (newsResponse.data && newsResponse.data.feed) {
-      const newsArticles = newsResponse.data.feed
-        .slice(0, 5) // Get top 5 news articles
-        .map(article => ({
-          type: 'news',
-          title: article.title,
-          summary: article.summary,
-          url: article.url,
-          source: article.source,
-          date: new Date(article.time_published).toLocaleDateString(),
-          sentiment: article.overall_sentiment_label,
-          image_url: article.banner_image || article.source_image_url || null
-        }));
-      
-      news.push(...newsArticles);
-    }
-
-    if (news.length === 0) {
-      return res.status(404).json({ error: 'No information found for this symbol' });
-    }
-
-    res.json(news);
   } catch (err) {
-    console.error('Error fetching stock news:', err);
-    res.status(500).json({ error: 'Server error fetching news data' });
-  }
-});
-
-// @route GET api/stocks/history/:symbol
-// @desc Get stock price history
-// @access Private
-router.get('/history/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
-  console.log('Processing stock history request for symbol:', req.params.symbol);
-  console.log('User from token:', req.user);
-  
-  try {
-    const { symbol } = req.params;
-    
-    if (!symbol) {
-      return res.status(400).json({ error: 'Stock symbol is required' });
-    }
-
-    console.log(`Fetching historical data for symbol: ${symbol}`);
-    const response = await axios.get(
-      `${ALPHA_VANTAGE_BASE_URL}?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
-    );
-
-    if (!response.data || !response.data['Time Series (Daily)']) {
-      return res.status(404).json({ error: 'No historical data found for this symbol' });
-    }
-
-    const timeSeriesData = response.data['Time Series (Daily)'];
-    const historicalData = Object.entries(timeSeriesData)
-      .slice(0, 30) // Get last 30 days
-      .map(([date, data]) => ({
-        date,
-        price: parseFloat(data['4. close'])
-      }))
-      .reverse(); // Show oldest to newest
-
-    res.json(historicalData);
-  } catch (err) {
-    console.error('Error fetching stock history:', err);
-    res.status(500).json({ error: 'Server error fetching historical data' });
+    console.error('Error fetching stock price:', err);
+    res.status(500).json({ 
+      valid: false,
+      error: 'Server error fetching stock price'
+    });
   }
 });
 
