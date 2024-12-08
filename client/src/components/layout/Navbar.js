@@ -11,6 +11,14 @@ class Navbar extends Component {
     this.props.logoutUser();
   };
 
+  componentDidMount() {
+    const M = window.M;
+    if (M) {
+      const elems = document.querySelectorAll('.sidenav');
+      M.Sidenav.init(elems, {});
+    }
+  }
+
   render() {
     const { isAuthenticated, user } = this.props.auth;
 
@@ -190,20 +198,29 @@ class Navbar extends Component {
           <div className="nav-wrapper white">
             <Link
               to="/"
-              className="col s5 brand-logo black-text"
+              className="left black-text"
               style={{
                 fontFamily: "monospace",
                 paddingLeft: "16px",
+                display: "flex",
+                alignItems: "center",
+                height: "100%"
               }}
             >
-              <img src={logo} alt="Trade Wise Logo" style={{ height: "40px", marginRight: "10px", verticalAlign: "middle" }} />
-              Virtual Stock Trading
+              <img src={logo} alt="Trade Wise Logo" style={{ height: "40px", marginRight: "10px" }} />
+              <span className="hide-on-small-only">Virtual Stock Trading</span>
             </Link>
+            <a href="#!" data-target="mobile-nav" className="sidenav-trigger right">
+              <i className="material-icons black-text">menu</i>
+            </a>
             <ul className="right hide-on-med-and-down">
               {isAuthenticated ? authLinks : guestLinks}
             </ul>
           </div>
         </nav>
+        <ul className="sidenav" id="mobile-nav">
+          {isAuthenticated ? authLinks : guestLinks}
+        </ul>
       </div>
     );
   }
