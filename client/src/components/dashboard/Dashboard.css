@@ -216,6 +216,12 @@ table.highlight td {
     padding: 0 10px;
     margin: 2px;
   }
+
+  /* Hide the Actions column and its header */
+  table.highlight th:last-child,
+  table.highlight td:last-child {
+    display: none;
+  }
 }
 
 /* Responsive Design */

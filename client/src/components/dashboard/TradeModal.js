@@ -132,8 +132,13 @@ const TradeModal = ({
               type="text"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-              disabled={tradeType === 'sell'}
+              list="owned-stocks"
             />
+            <datalist id="owned-stocks">
+              {ownedStocks.map(stock => (
+                <option key={stock.symbol} value={stock.symbol} />
+              ))}
+            </datalist>
             <label htmlFor="symbol" className={symbol ? 'active' : ''}>
               Stock Symbol
             </label>

@@ -287,14 +287,18 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
             return res.status(404).json({ error: "User not found" });
         }
 
-        const currentPrice = Number(stockInfo.currentPrice);
-        const totalCost = currentPrice * quantity;
+        // Convert values to numbers and fix decimal places
+        const currentPrice = Number(parseFloat(stockInfo.currentPrice).toFixed(2));
+        const quantityNum = Number(parseInt(quantity));
+        const commission = 0.00; // Add commission if needed
+        const totalCost = parseFloat((currentPrice * quantityNum + commission).toFixed(2));
 
         console.log("Purchase details:", {
             userId,
             symbol,
-            quantity,
+            quantity: quantityNum,
             currentPrice,
+            commission,
             totalCost,
             userBalance: user.balance
         });
@@ -304,35 +308,44 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
             return res.status(400).json({ error: "Insufficient funds" });
         }
 
-        user.balance -= totalCost;
+        // Update user balance with proper decimal handling
+        user.balance = parseFloat((user.balance - totalCost).toFixed(2));
 
         const existingStockIndex = user.ownedStocks.findIndex(stock => stock.symbol === symbol);
 
         if (existingStockIndex !== -1) {
+            // Update existing position with proper average price calculation
             const existingStock = user.ownedStocks[existingStockIndex];
-            const newQuantity = existingStock.quantity + Number(quantity);
-            const newAveragePrice = ((existingStock.unit_price * existingStock.quantity) + (currentPrice * quantity)) / newQuantity;
+            const totalShares = existingStock.quantity + quantityNum;
+            const totalValue = (existingStock.quantity * existingStock.unit_price) + (quantityNum * currentPrice);
+            const newAveragePrice = parseFloat((totalValue / totalShares).toFixed(2));
 
             user.ownedStocks[existingStockIndex] = {
                 symbol,
-                quantity: newQuantity,
+                quantity: totalShares,
                 unit_price: newAveragePrice,
-                open_price: currentPrice // Use current price as open price since we don't have historical data
+                open_price: currentPrice,
+                last_updated: new Date()
             };
         } else {
+            // Add new position
             user.ownedStocks.push({
                 symbol,
-                quantity: Number(quantity),
+                quantity: quantityNum,
                 unit_price: currentPrice,
-                open_price: currentPrice // Use current price as open price
+                open_price: currentPrice,
+                last_updated: new Date()
             });
         }
 
+        // Record transaction
         user.transactions.push({
             transaction_type: "BUY",
             symbol,
             stock_price: currentPrice,
-            stock_quantity: Number(quantity),
+            stock_quantity: quantityNum,
+            commission,
+            total_cost: totalCost,
             date: new Date()
         });
 
@@ -351,12 +364,9 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
 
     } catch (err) {
         console.error("Buy stock error:", err);
-        // Log the full error stack trace
-        console.error("Error stack:", err.stack);
         res.status(500).json({ 
             error: "Error processing stock purchase", 
-            details: err.message,
-            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+            details: err.message
         });
     }
 });
@@ -366,15 +376,15 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
 // @access Private
 router.post("/sellStock", passport.authenticate("jwt", { session: false }), async (req, res) => {
     try {
-        console.log("Sell Stock Request Body:", req.body); // Log incoming request
+        console.log("Sell Stock Request Body:", req.body);
 
-        // Extract necessary fields from request
-        const { userId, symbol, quantity, stockInfo } = req.body;
+        const { symbol, quantity, stockInfo } = req.body;
+        const userId = req.user.id; // Get userId from authenticated user
 
         // Input validation
-        if (!userId || !symbol || !quantity || !stockInfo) {
+        if (!symbol || !quantity || !stockInfo) {
             return res.status(400).json({
-                error: "Missing required fields: userId, symbol, quantity, stockInfo"
+                error: "Missing required fields"
             });
         }
 
@@ -383,7 +393,6 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        console.log("User found:", user);
 
         // Check if the stock exists in user's portfolio
         const stockIndex = user.ownedStocks.findIndex(stock => stock.symbol === symbol);
@@ -392,69 +401,73 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
         }
 
         const ownedStock = user.ownedStocks[stockIndex];
-        console.log("Owned Stock:", ownedStock);
+        const quantityNum = Number(parseInt(quantity));
+        const currentPrice = Number(parseFloat(stockInfo.currentPrice).toFixed(2));
+        const commission = 0.00; // Add commission if needed
 
         // Ensure user has sufficient shares to sell
-        if (ownedStock.quantity < quantity) {
+        if (ownedStock.quantity < quantityNum) {
             return res.status(400).json({
                 error: "Insufficient shares to sell",
                 owned: ownedStock.quantity,
-                requested: quantity
+                requested: quantityNum
             });
         }
 
-        // Calculate current stock price and sale proceeds
-        const currentPrice = stockInfo.currentPrice;
-        const saleProceeds = currentPrice * quantity;
-
-        console.log("Current Price:", currentPrice);
-        console.log("Sale Proceeds:", saleProceeds);
+        // Calculate sale proceeds and profit/loss
+        const saleProceeds = parseFloat((currentPrice * quantityNum - commission).toFixed(2));
+        const costBasis = parseFloat((ownedStock.unit_price * quantityNum).toFixed(2));
+        const profitLoss = parseFloat((saleProceeds - costBasis).toFixed(2));
 
         // Update user's balance
-        user.balance += saleProceeds;
+        user.balance = parseFloat((user.balance + saleProceeds).toFixed(2));
 
-        // Update or remove stock from portfolio
-        const remainingQuantity = ownedStock.quantity - quantity;
-        if (remainingQuantity === 0) {
-            // Remove stock if all shares are sold
+        // Update or remove stock position
+        if (ownedStock.quantity === quantityNum) {
+            // Remove the stock if selling all shares
             user.ownedStocks.splice(stockIndex, 1);
         } else {
-            // Ensure all required fields are preserved
+            // Update remaining position
+            const remainingShares = ownedStock.quantity - quantityNum;
             user.ownedStocks[stockIndex] = {
-                symbol: ownedStock.symbol,
-                quantity: remainingQuantity,
-                unit_price: ownedStock.unit_price,
-                open_price: ownedStock.open_price
+                ...ownedStock,
+                quantity: remainingShares,
+                last_updated: new Date()
             };
         }
 
-        console.log("Updated Owned Stocks:", user.ownedStocks);
-
-        // Record transaction in user's history
+        // Record transaction
         user.transactions.push({
             transaction_type: "SELL",
             symbol,
             stock_price: currentPrice,
-            stock_quantity: quantity,
+            stock_quantity: quantityNum,
+            commission,
+            total_proceeds: saleProceeds,
+            profit_loss: profitLoss,
             date: new Date()
         });
 
-        console.log("New Transaction Recorded:", user.transactions[user.transactions.length - 1]);
-
-        // Save user to database
         await user.save();
 
-        // Return success response
         res.json({
             success: true,
-            message: "Stock sold successfully",
-            balance: user.balance,
-            ownedStocks: user.ownedStocks,
-            transactions: user.transactions
+            data: {
+                user,
+                saleDetails: {
+                    proceeds: saleProceeds,
+                    profitLoss,
+                    commission
+                }
+            }
         });
+
     } catch (err) {
-        console.error("Sell Stock Error:", err);
-        res.status(500).json({ error: "Error processing stock sale", details: err.message });
+        console.error("Sell stock error:", err);
+        res.status(500).json({ 
+            error: "Error processing stock sale", 
+            details: err.message 
+        });
     }
 });
 
