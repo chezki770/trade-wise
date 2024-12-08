@@ -69,15 +69,12 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
         }
 
         const tradeData = {
-            userId: userData.id,
             symbol: tradeInfo.symbol.toUpperCase(),
             quantity: parseInt(tradeInfo.quantity),
             stockInfo: {
                 currentPrice: response.data.currentPrice,
-                openPrice: response.data.openPrice,
-                highPrice: response.data.highPrice,
-                lowPrice: response.data.lowPrice,
-                volume: response.data.volume
+                change: response.data.change,
+                changePercent: response.data.changePercent
             }
         };
 

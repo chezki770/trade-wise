@@ -261,12 +261,24 @@ router.post("/stockRequest", passport.authenticate("jwt", { session: false }), a
 router.post("/buyStock", passport.authenticate("jwt", { session: false }), async (req, res) => {
     try {
         console.log("Buy stock request body:", req.body);
-        const { userId, symbol, quantity, stockInfo } = req.body;
+        const { symbol, quantity, stockInfo } = req.body;
+        const userId = req.user.id; // Get userId from authenticated user
 
         // Validate input
-        if (!userId || !symbol || !quantity || !stockInfo) {
-            console.error("Missing required fields:", { userId, symbol, quantity, stockInfo });
+        if (!symbol || !quantity || !stockInfo) {
+            console.error("Missing required fields:", { symbol, quantity, stockInfo });
             return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // Validate stockInfo structure
+        if (!stockInfo || typeof stockInfo !== 'object') {
+            console.error("Invalid stockInfo object:", stockInfo);
+            return res.status(400).json({ error: "Invalid stock information provided" });
+        }
+
+        if (!stockInfo.currentPrice || isNaN(stockInfo.currentPrice)) {
+            console.error("Invalid stock price:", stockInfo);
+            return res.status(400).json({ error: "Invalid stock price" });
         }
 
         const user = await User.findById(userId);
@@ -275,14 +287,17 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
             return res.status(404).json({ error: "User not found" });
         }
 
-        // Validate stock info
-        if (!stockInfo.currentPrice || isNaN(stockInfo.currentPrice)) {
-            console.error("Invalid stock price:", stockInfo);
-            return res.status(400).json({ error: "Invalid stock price" });
-        }
-
         const currentPrice = Number(stockInfo.currentPrice);
         const totalCost = currentPrice * quantity;
+
+        console.log("Purchase details:", {
+            userId,
+            symbol,
+            quantity,
+            currentPrice,
+            totalCost,
+            userBalance: user.balance
+        });
 
         if (user.balance < totalCost) {
             console.error("Insufficient funds:", { balance: user.balance, cost: totalCost });
@@ -302,14 +317,14 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
                 symbol,
                 quantity: newQuantity,
                 unit_price: newAveragePrice,
-                open_price: Number(stockInfo.openPrice)
+                open_price: currentPrice // Use current price as open price since we don't have historical data
             };
         } else {
             user.ownedStocks.push({
                 symbol,
                 quantity: Number(quantity),
                 unit_price: currentPrice,
-                open_price: Number(stockInfo.openPrice)
+                open_price: currentPrice // Use current price as open price
             });
         }
 
@@ -321,7 +336,12 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
             date: new Date()
         });
 
-        console.log("Saving updated user data:", user);
+        console.log("Saving updated user data:", {
+            balance: user.balance,
+            ownedStocks: user.ownedStocks,
+            lastTransaction: user.transactions[user.transactions.length - 1]
+        });
+
         await user.save();
 
         res.json({
@@ -331,7 +351,13 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
 
     } catch (err) {
         console.error("Buy stock error:", err);
-        res.status(500).json({ error: "Error processing stock purchase" });
+        // Log the full error stack trace
+        console.error("Error stack:", err.stack);
+        res.status(500).json({ 
+            error: "Error processing stock purchase", 
+            details: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 });
 
