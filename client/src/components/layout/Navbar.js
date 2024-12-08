@@ -16,7 +16,13 @@ class Navbar extends Component {
     const M = window.M;
     if (M) {
       const elems = document.querySelectorAll('.sidenav');
-      M.Sidenav.init(elems, {});
+      this.sidenav = M.Sidenav.init(elems, {});
+    }
+  }
+
+  handleLinkClick = () => {
+    if (this.sidenav && this.sidenav[0]) {
+      this.sidenav[0].close();
     }
   }
 
@@ -36,6 +42,7 @@ class Navbar extends Component {
               fontWeight: "bold",
               padding: "16px",
             }}
+            onClick={this.handleLinkClick}
           >
             Register
           </Link>
@@ -50,6 +57,7 @@ class Navbar extends Component {
               fontWeight: "bold",
               padding: "16px",
             }}
+            onClick={this.handleLinkClick}
           >
             Login
           </Link>
@@ -71,6 +79,7 @@ class Navbar extends Component {
                 fontWeight: "bold",
                 padding: "16px",
               }}
+              onClick={this.handleLinkClick}
             >
               Admin
             </Link>
@@ -86,6 +95,7 @@ class Navbar extends Component {
               fontWeight: "bold",
               padding: "16px",
             }}
+            onClick={this.handleLinkClick}
           >
             Dashboard
           </Link>
@@ -100,6 +110,7 @@ class Navbar extends Component {
               fontWeight: "bold",
               padding: "16px",
             }}
+            onClick={this.handleLinkClick}
           >
             News
           </Link>
@@ -114,6 +125,7 @@ class Navbar extends Component {
               fontWeight: "bold",
               padding: "16px",
             }}
+            onClick={this.handleLinkClick}
           >
             About
           </Link>
@@ -128,6 +140,7 @@ class Navbar extends Component {
               fontWeight: "bold",
               padding: "16px",
             }}
+            onClick={this.handleLinkClick}
           >
             FAQ
           </Link>
@@ -142,6 +155,7 @@ class Navbar extends Component {
               fontWeight: "bold",
               padding: "16px",
             }}
+            onClick={this.handleLinkClick}
           >
             Learn
           </Link>
@@ -156,6 +170,7 @@ class Navbar extends Component {
               fontWeight: "bold",
               padding: "16px",
             }}
+            onClick={this.handleLinkClick}
           >
             Research
           </Link>
@@ -170,6 +185,7 @@ class Navbar extends Component {
               fontWeight: "bold",
               padding: "16px",
             }}
+            onClick={this.handleLinkClick}
           >
             Transactions
           </Link>
@@ -177,7 +193,10 @@ class Navbar extends Component {
         <li>
           <a
             href="#!"
-            onClick={this.onLogoutClick}
+            onClick={(e) => {
+              this.onLogoutClick(e);
+              this.handleLinkClick();
+            }}
             className="col s3 black-text"
             style={{
               color: "grey",
@@ -205,9 +224,11 @@ class Navbar extends Component {
               className="col s5 brand-logo center black-text"
             >
               <img src={logo} alt="logo" style={{ height: '64px', marginRight: '10px' }} />
-              Trade Wise
+              <span className="hide-on-small-only">Trade Wise</span>
             </Link>
-            <MarketStatus />
+            <div style={{ position: 'absolute', left: '10px' }}>
+              <MarketStatus />
+            </div>
             <a href="#!" data-target="mobile-nav" className="sidenav-trigger right">
               <i className="material-icons black-text">menu</i>
             </a>

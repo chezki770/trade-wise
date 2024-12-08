@@ -142,13 +142,23 @@ class Dashboard extends Component {
       <div className="portfolio-table-container">
         <div className="portfolio-header">
           <h4>Portfolio</h4>
-          <button
-            className="btn green waves-effect waves-light"
-            onClick={() => this.toggleTradeModal("buy", null)}
-          >
-            <i className="material-icons left">add</i>
-            Buy New Stock
-          </button>
+          <div>
+            <button
+              className="btn red waves-effect waves-light"
+              onClick={() => this.toggleTradeModal("sell", null)}
+              style={{ marginRight: "10px" }}
+            >
+              <i className="material-icons left">remove</i>
+              Sell Stock
+            </button>
+            <button
+              className="btn green waves-effect waves-light"
+              onClick={() => this.toggleTradeModal("buy", null)}
+            >
+              <i className="material-icons left">add</i>
+              Buy New Stock
+            </button>
+          </div>
         </div>
 
         {ownedStocks.length === 0 ? (
