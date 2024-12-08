@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { logoutUser } from "../../redux/actions/authActions";
 import logo from "../../assets/trade_wise_logo.webp";
+import MarketStatus from "./MarketStatus";
 
 class Navbar extends Component {
   onLogoutClick = (e) => {
@@ -198,18 +199,15 @@ class Navbar extends Component {
           <div className="nav-wrapper white">
             <Link
               to="/"
-              className="left black-text"
               style={{
-                fontFamily: "monospace",
-                paddingLeft: "16px",
-                display: "flex",
-                alignItems: "center",
-                height: "100%"
+                fontFamily: "monospace"
               }}
+              className="col s5 brand-logo center black-text"
             >
-              <img src={logo} alt="Trade Wise Logo" style={{ height: "40px", marginRight: "10px" }} />
-              <span className="hide-on-small-only">Virtual Stock Trading</span>
+              <img src={logo} alt="logo" style={{ height: '64px', marginRight: '10px' }} />
+              Trade Wise
             </Link>
+            <MarketStatus />
             <a href="#!" data-target="mobile-nav" className="sidenav-trigger right">
               <i className="material-icons black-text">menu</i>
             </a>
