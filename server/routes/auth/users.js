@@ -383,21 +383,41 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
 
         // Input validation
         if (!symbol || !quantity || !stockInfo) {
+            console.error("Missing required fields:", { symbol, quantity, stockInfo });
             return res.status(400).json({
-                error: "Missing required fields"
+                error: "Missing required fields",
+                details: {
+                    symbol: !symbol ? "Symbol is required" : null,
+                    quantity: !quantity ? "Quantity is required" : null,
+                    stockInfo: !stockInfo ? "Stock information is required" : null
+                }
+            });
+        }
+
+        // Validate stockInfo structure
+        if (!stockInfo.currentPrice || isNaN(stockInfo.currentPrice)) {
+            console.error("Invalid stock price:", stockInfo);
+            return res.status(400).json({
+                error: "Invalid stock information",
+                details: "Current price is required and must be a number"
             });
         }
 
         // Find user in database
         const user = await User.findById(userId);
         if (!user) {
+            console.error("User not found:", userId);
             return res.status(404).json({ error: "User not found" });
         }
 
         // Check if the stock exists in user's portfolio
         const stockIndex = user.ownedStocks.findIndex(stock => stock.symbol === symbol);
         if (stockIndex === -1) {
-            return res.status(400).json({ error: "Stock not found in portfolio" });
+            console.error("Stock not found in portfolio:", { userId, symbol });
+            return res.status(400).json({ 
+                error: "Stock not found in portfolio",
+                details: `You do not own any shares of ${symbol}`
+            });
         }
 
         const ownedStock = user.ownedStocks[stockIndex];
@@ -407,8 +427,14 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
 
         // Ensure user has sufficient shares to sell
         if (ownedStock.quantity < quantityNum) {
+            console.error("Insufficient shares:", { 
+                owned: ownedStock.quantity, 
+                requested: quantityNum,
+                symbol
+            });
             return res.status(400).json({
                 error: "Insufficient shares to sell",
+                details: `You only own ${ownedStock.quantity} shares of ${symbol}, but attempted to sell ${quantityNum} shares`,
                 owned: ownedStock.quantity,
                 requested: quantityNum
             });
@@ -418,6 +444,15 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
         const saleProceeds = parseFloat((currentPrice * quantityNum - commission).toFixed(2));
         const costBasis = parseFloat((ownedStock.unit_price * quantityNum).toFixed(2));
         const profitLoss = parseFloat((saleProceeds - costBasis).toFixed(2));
+
+        console.log("Sale calculations:", {
+            currentPrice,
+            quantityNum,
+            commission,
+            saleProceeds,
+            costBasis,
+            profitLoss
+        });
 
         // Update user's balance
         user.balance = parseFloat((user.balance + saleProceeds).toFixed(2));
@@ -448,6 +483,12 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
             date: new Date()
         });
 
+        console.log("Saving updated user data:", {
+            balance: user.balance,
+            ownedStocks: user.ownedStocks,
+            lastTransaction: user.transactions[user.transactions.length - 1]
+        });
+
         await user.save();
 
         res.json({
@@ -457,7 +498,8 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
                 saleDetails: {
                     proceeds: saleProceeds,
                     profitLoss,
-                    commission
+                    commission,
+                    remainingShares: ownedStock.quantity - quantityNum
                 }
             }
         });
@@ -466,7 +508,8 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
         console.error("Sell stock error:", err);
         res.status(500).json({ 
             error: "Error processing stock sale", 
-            details: err.message 
+            details: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
         });
     }
 });

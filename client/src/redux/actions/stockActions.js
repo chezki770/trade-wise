@@ -106,18 +106,39 @@ export const buyStock = (userData, tradeInfo) => async (dispatch) => {
 // Sell Stock Action
 export const sellStock = (userData, tradeInfo) => async (dispatch) => {
     try {
-        // Validate and fetch stock info
-        const stockInfo = await fetchStockInfo(tradeInfo.symbol);
+        console.log("Starting sellStock action...");
+        console.log("User Data:", userData);
+        console.log("Trade Info:", tradeInfo);
+
+        // Set Authorization Header
+        const token = localStorage.getItem("jwtToken");
+        if (token) {
+            console.log("JWT Token found, setting authorization header...");
+            setAuthToken(token);
+        }
+
+        console.log("Fetching stock data...");
+        const response = await axios.get(`/api/stocks/price/${tradeInfo.symbol}`);
+        console.log("Stock price response:", response.data);
+
+        if (!response.data || !response.data.valid) {
+            console.error("Invalid stock data:", response.data);
+            throw new Error(response.data?.error || "Invalid stock data received");
+        }
 
         const tradeData = {
-            userId: userData.id,
-            symbol: tradeInfo.symbol,
-            quantity: tradeInfo.quantity.toString(),
-            stockInfo
+            symbol: tradeInfo.symbol.toUpperCase(),
+            quantity: parseInt(tradeInfo.quantity),
+            stockInfo: {
+                currentPrice: response.data.currentPrice,
+                change: response.data.change,
+                changePercent: response.data.changePercent
+            }
         };
 
-        // Make the sell request
+        console.log("Sending sell request with trade data:", tradeData);
         const sellResponse = await axios.post("/api/users/sellStock", tradeData);
+        
         console.log("Sell request successful:", sellResponse.data);
         dispatch(returnSale(sellResponse.data));
         
@@ -129,9 +150,11 @@ export const sellStock = (userData, tradeInfo) => async (dispatch) => {
         });
 
     } catch (err) {
+        console.error("Error occurred in sellStock:", err);
+        const errorMessage = err.response?.data?.error || err.message || "Failed to sell stock";
         dispatch({
             type: GET_ERRORS,
-            payload: err.message || "An error occurred while selling the stock"
+            payload: { error: errorMessage }
         });
     }
 };
