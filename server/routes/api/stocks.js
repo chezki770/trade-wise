@@ -89,4 +89,104 @@ router.get('/price/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
   }
 });
 
+// @route GET api/stocks/history/:symbol
+// @desc Get historical stock data
+// @access Private
+router.get('/history/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    
+    if (!symbol) {
+      return res.status(400).json({ error: 'Stock symbol is required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'TIME_SERIES_DAILY',
+        symbol: symbol,
+        apikey: ALPHA_VANTAGE_API_KEY
+      }
+    });
+
+    const timeSeries = response.data['Time Series (Daily)'];
+    
+    if (!timeSeries) {
+      return res.json({ 
+        valid: false,
+        error: 'No historical data available'
+      });
+    }
+
+    // Convert the data into an array format suitable for charts
+    const historicalData = Object.entries(timeSeries)
+      .slice(0, 30) // Get last 30 days
+      .map(([date, values]) => ({
+        date,
+        price: parseFloat(values['4. close'])
+      }))
+      .reverse();
+
+    res.json({
+      valid: true,
+      data: historicalData
+    });
+  } catch (err) {
+    console.error('Error fetching historical data:', err);
+    res.status(500).json({ 
+      valid: false,
+      error: 'Server error fetching historical data'
+    });
+  }
+});
+
+// @route GET api/stocks/news/:symbol
+// @desc Get news for a stock
+// @access Private
+router.get('/news/:symbol', authenticateJWT, checkApiKey, async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    
+    if (!symbol) {
+      return res.status(400).json({ error: 'Stock symbol is required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'NEWS_SENTIMENT',
+        tickers: symbol,
+        apikey: ALPHA_VANTAGE_API_KEY
+      }
+    });
+
+    if (!response.data.feed) {
+      return res.json({ 
+        valid: false,
+        error: 'No news available'
+      });
+    }
+
+    // Process and format the news data
+    const newsData = response.data.feed.map(item => ({
+      title: item.title,
+      url: item.url,
+      source: item.source,
+      summary: item.summary,
+      publishedAt: item.time_published,
+      sentiment: item.overall_sentiment_label,
+      image: item.banner_image || item.source_domain_image || null
+    })).slice(0, 10); // Get top 10 news items
+
+    res.json({
+      valid: true,
+      data: newsData
+    });
+  } catch (err) {
+    console.error('Error fetching news:', err);
+    res.status(500).json({ 
+      valid: false,
+      error: 'Server error fetching news data'
+    });
+  }
+});
+
 module.exports = router;

@@ -12,6 +12,9 @@ import {
 } from 'recharts';
 import './StockResearch.css';
 
+// Configure axios baseURL
+axios.defaults.baseURL = 'http://localhost:8080';
+
 const StockResearch = () => {
   const [symbol, setSymbol] = useState('');
   const [stockData, setStockData] = useState(null);
@@ -19,6 +22,7 @@ const StockResearch = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [price, setPrice] = useState(null);
 
   // Get the token from localStorage
   const getAuthToken = () => {
@@ -27,8 +31,8 @@ const StockResearch = () => {
     return token || '';
   };
 
-  const fetchStockData = async () => {
-    if (!symbol) return;
+  const fetchStockPrice = async (searchSymbol) => {
+    if (!searchSymbol) return;
     
     setLoading(true);
     setError('');
@@ -42,17 +46,59 @@ const StockResearch = () => {
           'Content-Type': 'application/json'
         }
       };
-      console.log('Request config:', config);
 
-      const [stockResponse, newsResponse, historyResponse] = await Promise.all([
-        axios.get(`/api/stocks/info/${symbol}`, config),
-        axios.get(`/api/stocks/news/${symbol}`, config),
-        axios.get(`/api/stocks/history/${symbol}`, config)
+      const priceResponse = await axios.get(`/api/stocks/price/${searchSymbol}`, config);
+      if (priceResponse.data.valid) {
+        setPrice(priceResponse.data.currentPrice);
+        setError('');
+        return true;
+      } else {
+        setError(priceResponse.data.error || 'Invalid stock symbol');
+        setPrice(null);
+        return false;
+      }
+    } catch (err) {
+      console.error('Stock price fetch error:', err);
+      setError(err.message || 'Failed to fetch stock price');
+      setPrice(null);
+      return false;
+    }
+  };
+
+  const fetchStockData = async () => {
+    if (!symbol) return;
+    
+    setLoading(true);
+    setError('');
+    try {
+      const token = getAuthToken();
+      const config = {
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      };
+
+      // First validate the symbol by fetching price
+      const isValid = await fetchStockPrice(symbol);
+      if (!isValid) {
+        setLoading(false);
+        return;
+      }
+
+      // Fetch all data in parallel
+      const [historyResponse, newsResponse] = await Promise.all([
+        axios.get(`/api/stocks/history/${symbol}`, config),
+        axios.get(`/api/stocks/news/${symbol}`, config)
       ]);
       
-      setStockData(stockResponse.data);
-      setNews(newsResponse.data);
-      setHistoricalData(historyResponse.data);
+      if (historyResponse.data.valid) {
+        setHistoricalData(historyResponse.data.data);
+      }
+
+      if (newsResponse.data.valid) {
+        setNews(newsResponse.data.data);
+      }
     } catch (err) {
       console.error('API Error Details:', {
         status: err.response?.status,
@@ -69,6 +115,21 @@ const StockResearch = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchStockData();
+  };
+
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+      }).format(date);
+    } catch (err) {
+      return "";
+    }
   };
 
   return (
@@ -95,7 +156,7 @@ const StockResearch = () => {
                       className="btn waves-effect waves-light"
                       disabled={loading}
                     >
-                      {loading ? 'Searching...' : 'Search'}
+                      {loading ? 'Loading...' : 'Search'}
                     </button>
                   </form>
                 </div>
@@ -104,72 +165,53 @@ const StockResearch = () => {
           </div>
 
           {error && (
-            <div className="card red lighten-4">
-              <div className="card-content red-text">
-                {error}
-              </div>
+            <div className="card-panel red lighten-4 red-text text-darken-4">
+              {error}
             </div>
           )}
 
-          {stockData && (
+          {price !== null && !error && (
             <div className="row">
               <div className="col s12">
                 <div className="card">
                   <div className="card-content">
-                    <span className="card-title">{stockData.symbol} Stock Information</span>
-                    <div className="row">
-                      <div className="col s12 m6">
-                        <p><strong>Price:</strong> ${stockData.price}</p>
-                        <p>
-                          <strong>Change:</strong>
-                          <span className={stockData.change >= 0 ? 'green-text' : 'red-text'}>
-                            {stockData.change >= 0 ? '+' : ''}{stockData.change}%
-                          </span>
-                        </p>
-                      </div>
-                      <div className="col s12 m6">
-                        <p><strong>Volume:</strong> {stockData.volume.toLocaleString()}</p>
-                        <p><strong>High:</strong> ${stockData.high}</p>
-                        <p><strong>Low:</strong> ${stockData.low}</p>
-                      </div>
+                    <h5>{symbol} Stock Information</h5>
+                    <div className="stock-info">
+                      <p><strong>Current Price:</strong> ${price.toFixed(2)}</p>
                     </div>
 
                     {/* Price History Chart */}
                     {historicalData.length > 0 && (
-                      <div className="row">
-                        <div className="col s12">
-                          <h5>30-Day Price History</h5>
-                          <div style={{ width: '100%', height: 400 }}>
-                            <ResponsiveContainer>
-                              <LineChart data={historicalData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis 
-                                  dataKey="date" 
-                                  tick={{ fontSize: 12 }}
-                                  interval="preserveStartEnd"
-                                  angle={-45}
-                                  textAnchor="end"
-                                />
-                                <YAxis 
-                                  domain={['auto', 'auto']}
-                                  tick={{ fontSize: 12 }}
-                                />
-                                <Tooltip 
-                                  formatter={(value) => ['$' + value.toFixed(2), 'Price']}
-                                  labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                                />
-                                <Line
-                                  type="monotone"
-                                  dataKey="price"
-                                  stroke="#2196F3"
-                                  strokeWidth={2}
-                                  dot={false}
-                                  activeDot={{ r: 8 }}
-                                />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </div>
+                      <div className="chart-container" style={{ height: '400px', marginTop: '20px' }}>
+                        <h6>30-Day Price History</h6>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={historicalData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="date" 
+                              angle={-45}
+                              textAnchor="end"
+                              height={60}
+                              tick={{ fontSize: 12 }}
+                            />
+                            <YAxis 
+                              domain={['auto', 'auto']}
+                              tick={{ fontSize: 12 }}
+                            />
+                            <Tooltip 
+                              formatter={(value) => ['$' + value.toFixed(2), 'Price']}
+                              labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="price" 
+                              stroke="#2196F3" 
+                              strokeWidth={2}
+                              dot={false}
+                              activeDot={{ r: 8 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
                       </div>
                     )}
                   </div>
@@ -178,105 +220,50 @@ const StockResearch = () => {
             </div>
           )}
 
-          {news && news.length > 0 && (
-            <div className="row">
-              <div className="col s12">
-                <div className="card">
-                  <div className="card-content">
-                    <span className="card-title">Company Information & News</span>
-                    <div className="news-container">
-                      {news.map((item, index) => (
-                        item.type === 'overview' ? (
-                          // Company Overview
-                          <div key={index} className="company-info">
-                            <h6>{item.title}</h6>
-                            <p className="summary">{item.summary}</p>
-                            <div className="metrics">
-                              {item.sector && (
-                                <div className="metric">
-                                  <span className="metric-label">Sector</span>
-                                  <span className="metric-value">{item.sector}</span>
-                                </div>
-                              )}
-                              {item.industry && (
-                                <div className="metric">
-                                  <span className="metric-label">Industry</span>
-                                  <span className="metric-value">{item.industry}</span>
-                                </div>
-                              )}
-                              {item.marketCap && (
-                                <div className="metric">
-                                  <span className="metric-label">Market Cap</span>
-                                  <span className="metric-value">
-                                    ${(parseInt(item.marketCap) / 1e9).toFixed(2)}B
-                                  </span>
-                                </div>
-                              )}
-                              {item.peRatio && (
-                                <div className="metric">
-                                  <span className="metric-label">P/E Ratio</span>
-                                  <span className="metric-value">{parseFloat(item.peRatio).toFixed(2)}</span>
-                                </div>
-                              )}
-                              {item.dividendYield && (
-                                <div className="metric">
-                                  <span className="metric-label">Dividend Yield</span>
-                                  <span className="metric-value">
-                                    {(parseFloat(item.dividendYield) * 100).toFixed(2)}%
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          // News Article
-                          <div key={index} className={`news-item ${item.image_url ? 'has-image' : ''}`}>
-                            <div className="news-content">
-                              <h6>{item.title}</h6>
-                              <div className="meta-info">
-                                <span className="source">{item.source}</span>
-                                <span>{item.date}</span>
-                                {item.sentiment && (
-                                  <span className={`sentiment ${item.sentiment.toLowerCase()}`}>
-                                    {item.sentiment}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="summary">{item.summary}</p>
-                              {item.url && (
-                                <div className="actions">
-                                  <a
-                                    href={item.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn-small waves-effect waves-light"
-                                  >
-                                    Read Full Article
-                                  </a>
-                                </div>
-                              )}
-                            </div>
-                            {item.image_url && (
-                              <div className="news-image-container">
-                                <img
-                                  src={item.image_url}
-                                  alt={item.title}
-                                  className="news-image"
-                                  onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = '/images/news-placeholder.jpg';
-                                    e.target.className = 'news-image fallback';
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        )
-                      ))}
+          {/* News Section */}
+          {news.length > 0 && (
+            <div className="stock-news-section">
+              <h3>Latest News for {symbol}</h3>
+              <div className="stock-news-grid">
+                {news.map((article, index) => (
+                  <a 
+                    key={index} 
+                    href={article.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="stock-news-link"
+                  >
+                    <div className="stock-news-card">
+                      {article.image && (
+                        <img 
+                          src={article.image} 
+                          alt={article.title} 
+                          className="stock-news-image" 
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/default-news-image.jpg';
+                          }}
+                        />
+                      )}
+                      <div className="stock-news-content">
+                        <h5 className="stock-news-title">{article.title}</h5>
+                        <p className="stock-news-summary">{article.summary}</p>
+                        <div className="stock-news-meta">
+                          <span className="stock-news-source">{article.source}</span>
+                          <span>{formatDate(article.publishedAt)}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </a>
+                ))}
               </div>
+            </div>
+          )}
+
+          {!loading && news.length === 0 && symbol && (
+            <div className="no-stock-news">
+              <i className="material-icons">article</i>
+              <p>No news articles available for {symbol}</p>
             </div>
           )}
         </div>
