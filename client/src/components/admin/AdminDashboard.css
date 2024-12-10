@@ -59,49 +59,6 @@
   color: #e74c3c;
 }
 
-/* Recent Trades Panel */
-.recent-trades-panel {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 40px;
-  overflow: hidden;
-}
-
-.trades-table {
-  overflow-x: auto;
-}
-
-.trades-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.trades-table th,
-.trades-table td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-}
-
-.trades-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  color: #666;
-}
-
-.trades-table tr:hover {
-  background-color: #f8f9fa;
-}
-
-.trades-table .buy {
-  color: #2ecc71;
-}
-
-.trades-table .sell {
-  color: #e74c3c;
-}
-
 /* User Management Panel */
 .user-management-panel {
   background: white;
@@ -128,14 +85,5 @@
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .trades-table {
-    font-size: 0.875rem;
-  }
-  
-  .trades-table th,
-  .trades-table td {
-    padding: 8px 10px;
   }
 }

@@ -26,7 +26,6 @@ class AdminDashboard extends Component {
         tradingVolume: 0,
         avgTradeSize: 0
       },
-      recentTrades: [],
       systemMetrics: {
         serverStatus: 'operational',
         apiCallsToday: 0,
@@ -40,7 +39,6 @@ class AdminDashboard extends Component {
     if (this.props.auth.user.isAdmin) {
       this.fetchUsers();
       this.fetchStatistics();
-      this.fetchRecentTrades();
       this.fetchSystemMetrics();
       // Set up auto-refresh every 5 minutes
       this.refreshInterval = setInterval(() => {
@@ -92,22 +90,6 @@ class AdminDashboard extends Component {
       })
       .catch(err => {
         console.error("Error fetching statistics:", err);
-      });
-  };
-
-  fetchRecentTrades = () => {
-    const token = localStorage.getItem("jwtToken");
-    axios
-      .get("/api/analytics/recent-trades", {
-        headers: {
-          Authorization: token
-        }
-      })
-      .then(res => {
-        this.setState({ recentTrades: res.data });
-      })
-      .catch(err => {
-        console.error("Error fetching recent trades:", err);
       });
   };
 
@@ -258,7 +240,6 @@ class AdminDashboard extends Component {
       showDeleteConfirm, 
       showPromoteConfirm,
       statistics,
-      recentTrades,
       systemMetrics
     } = this.state;
 
@@ -320,37 +301,6 @@ class AdminDashboard extends Component {
               </p>
               <small>Last Updated: {systemMetrics?.lastUpdated ? systemMetrics.lastUpdated.toLocaleTimeString() : 'Never'}</small>
             </div>
-          </div>
-        </div>
-
-        {/* Recent Trades */}
-        <div className="recent-trades-panel">
-          <h3>Recent Trades</h3>
-          <div className="trades-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>User</th>
-                  <th>Type</th>
-                  <th>Symbol</th>
-                  <th>Quantity</th>
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentTrades.map(trade => (
-                  <tr key={trade._id}>
-                    <td>{new Date(trade.executedAt).toLocaleString()}</td>
-                    <td>{trade.user.email}</td>
-                    <td className={trade.type}>{trade.type}</td>
-                    <td>{trade.symbol}</td>
-                    <td>{trade.quantity}</td>
-                    <td>${trade.price}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
 
