@@ -344,8 +344,8 @@ router.post("/buyStock", passport.authenticate("jwt", { session: false }), async
             symbol,
             stock_price: currentPrice,
             stock_quantity: quantityNum,
-            commission,
-            total_cost: totalCost,
+            // commission,
+            // total_cost: totalCost,
             date: new Date()
         });
 
@@ -455,38 +455,43 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
         });
 
         // Update user's balance
-        user.balance = parseFloat((user.balance + saleProceeds).toFixed(2));
+        const newBalance = parseFloat((user.balance + saleProceeds).toFixed(2));
+        user.balance = newBalance;
 
         // Update or remove stock position
         if (ownedStock.quantity === quantityNum) {
             // Remove the stock if selling all shares
-            user.ownedStocks.splice(stockIndex, 1);
+            user.ownedStocks = user.ownedStocks.filter(stock => stock.symbol !== symbol);
         } else {
             // Update remaining position
             const remainingShares = ownedStock.quantity - quantityNum;
-            user.ownedStocks[stockIndex] = {
-                ...ownedStock,
+            const updatedStock = {
+                ...ownedStock.toObject(),
                 quantity: remainingShares,
                 last_updated: new Date()
             };
+            user.ownedStocks = user.ownedStocks.map(stock => 
+                stock.symbol === symbol ? updatedStock : stock
+            );
         }
 
         // Record transaction
-        user.transactions.push({
+        const transaction = {
             transaction_type: "SELL",
             symbol,
             stock_price: currentPrice,
             stock_quantity: quantityNum,
-            commission,
-            total_proceeds: saleProceeds,
+            // commission,
+            // total_proceeds: saleProceeds,
             profit_loss: profitLoss,
             date: new Date()
-        });
+        };
+        user.transactions.push(transaction);
 
         console.log("Saving updated user data:", {
             balance: user.balance,
             ownedStocks: user.ownedStocks,
-            lastTransaction: user.transactions[user.transactions.length - 1]
+            lastTransaction: transaction
         });
 
         await user.save();
@@ -505,7 +510,12 @@ router.post("/sellStock", passport.authenticate("jwt", { session: false }), asyn
         });
 
     } catch (err) {
-        console.error("Sell stock error:", err);
+        console.error("Sell stock error details:", {
+            error: err.message,
+            stack: err.stack,
+            requestBody: req.body,
+            userId: req.user?.id
+        });
         res.status(500).json({ 
             error: "Error processing stock sale", 
             details: err.message,
