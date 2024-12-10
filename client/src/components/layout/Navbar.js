@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { logoutUser } from "../../redux/actions/authActions";
-import logo from "../../assets/trade_wise_logo.webp";
+import logo from "../../assets/trade_wise_logo-removebg-preview.png";
 import MarketStatus from "./MarketStatus";
 
 class Navbar extends Component {
@@ -216,19 +216,39 @@ class Navbar extends Component {
       <div className="navbar-fixed">
         <nav className="z-depth-0">
           <div className="nav-wrapper white">
-            <Link
-              to="/"
-              style={{
-                fontFamily: "monospace"
-              }}
-              className="col s5 brand-logo center black-text"
-            >
-              <img src={logo} alt="logo" style={{ height: '64px', marginRight: '10px' }} />
-              <span className="hide-on-small-only">Trade Wise</span>
-            </Link>
-            <div style={{ position: 'absolute', left: '10px' }}>
-              <MarketStatus />
-            </div>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/"
+                  style={{
+                    fontFamily: "monospace",
+                    marginLeft: '10px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                  className="brand-logo left black-text"
+                >
+                  <img src={logo} alt="logo" style={{ height: '64px' }} />
+                </Link>
+                <div style={{ position: 'absolute', left: '80px', top: '0' }}>
+                  <MarketStatus />
+                </div>
+              </>
+            ) : (
+              <Link
+                to="/"
+                style={{
+                  fontFamily: "monospace",
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                className="col s5 brand-logo center black-text"
+              >
+                <img src={logo} alt="logo" style={{ height: '64px' }} />
+                <span style={{ display: 'flex', alignItems: 'center' }} className="hide-on-small-only">Trade Wise</span>
+              </Link>
+            )}
             <a href="#!" data-target="mobile-nav" className="sidenav-trigger right">
               <i className="material-icons black-text">menu</i>
             </a>
