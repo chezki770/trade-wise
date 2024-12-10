@@ -121,7 +121,7 @@ export const sellStock = (userData, tradeInfo) => async (dispatch) => {
         const response = await axios.get(`/api/stocks/price/${tradeInfo.symbol}`);
         console.log("Stock price response:", response.data);
 
-        if (!response.data || !response.data.valid) {
+        if (!response.data || !response.data.valid || !response.data.currentPrice || response.data.currentPrice <= 0) {
             console.error("Invalid stock data:", response.data);
             throw new Error(response.data?.error || "Invalid stock data received");
         }
