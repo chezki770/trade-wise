@@ -9,19 +9,6 @@ import {
     SET_CURRENT_USER
 } from "./types";
 
-// Helper function to fetch stock info
-// const fetchStockInfo = async (symbol) => {
-//     try {
-//         const response = await axios.get(`/api/stock/price/${symbol}`);
-//         const stockInfo = response.data;
-        
-//         if (!stockInfo) throw new Error("Failed to retrieve stock data");
-        
-//         return stockInfo;
-//     } catch (err) {
-//         throw new Error(`Stock API Error: ${err.message}`);
-//     }
-// };
 
 const fetchStockInfo = async (symbol) => {
     try {
